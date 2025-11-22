@@ -1,0 +1,43 @@
+{
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Temperature (°C)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "machine_temperature",
+          "legendFormat": "{{device}}",
+          "refId": "A"
+        }
+      ],
+      "id": 1
+    },
+    {
+      "type": "graph",
+      "title": "Vibration (m/s^2)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "machine_vibration",
+          "legendFormat": "{{device}}",
+          "refId": "B"
+        }
+      ],
+      "id": 2
+    },
+    {
+      "type": "graph",
+      "title": "RPM",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "machine_rpm", "legendFormat": "{{device}}", "refId": "C" }
+      ],
+      "id": 3
+    }
+  ],
+  "schemaVersion": 27,
+  "title": "IoT Simulator Dashboard",
+  "version": 1
+}
