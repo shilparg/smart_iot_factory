@@ -1,0 +1,67 @@
+#!/bin/bash
+set -e
+exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+# Variables injected by Terraform
+SIMULATOR_COUNT=${simulator_count}
+CERT_BUCKET=${cert_s3_bucket}
+REGION=${region}
+AWS_ENDPOINT=${aws_endpoint}
+
+yum update -y
+amazon-linux-extras install docker -y
+systemctl start docker
+systemctl enable docker
+usermod -aG docker ec2-user
+
+# Install Docker Compose
+curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" \
+  -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+docker-compose --version
+
+mkdir -p /opt/iot-simulator
+cd /opt/iot-simulator
+
+aws s3 cp s3://${cert_s3_bucket}/AmazonRootCA1.pem ./AmazonRootCA1.pem --region ${region}
+aws s3 cp s3://${cert_s3_bucket}/device-certificate.pem.crt ./device-certificate.pem.crt --region ${region}
+aws s3 cp s3://${cert_s3_bucket}/private.pem.key ./private.pem.key --region ${region}
+
+# docker-compose.yml
+cat > docker-compose.yml <<EOF
+version: '3.8'
+services:
+  iot-simulator:
+    build: .
+    environment:
+      - AWS_ENDPOINT=${aws_endpoint}
+      - SIMULATOR_COUNT=${simulator_count}
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+EOF
+
+# Prometheus config
+cat > prometheus.yml <<'EOF'
+global:
+  scrape_interval: 5s
+scrape_configs:
+  - job_name: 'iot-sim'
+    static_configs:
+      - targets: ['localhost:9100']
+EOF
+
+# Start Docker stack
+docker-compose up -d
