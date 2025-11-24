@@ -1,0 +1,68 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "IoT Simulator Anomalies",
+    "tags": ["iot", "anomalies", "prometheus"],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "type": "graph",
+        "title": "Anomaly Frequency by Type",
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "rate(anomaly_type_total[5m])",
+            "legendFormat": "{{type}}"
+          }
+        ],
+        "lines": true,
+        "fill": 1
+      },
+      {
+        "type": "graph",
+        "title": "Anomaly Ratio (%)",
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "(rate(anomaly_type_total[5m]) / rate(events_total[5m])) * 100",
+            "legendFormat": "Anomaly Ratio"
+          }
+        ],
+        "lines": true,
+        "fill": 1
+      },
+      {
+        "type": "bargauge",
+        "title": "Anomaly Severity Breakdown",
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "anomaly_severity_total",
+            "legendFormat": "{{level}}"
+          }
+        ],
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient"
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Temperature Spike Distribution",
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))",
+            "legendFormat": "95th percentile spike"
+          }
+        ],
+        "lines": true,
+        "fill": 1
+      }
+    ]
+  },
+  "overwrite": true
+}

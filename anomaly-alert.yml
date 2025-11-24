@@ -1,0 +1,37 @@
+apiVersion: 1
+
+groups:
+  - name: anomaly-alerts
+    interval: 30s
+    rules:
+      - uid: anomaly-ratio-high
+        title: "High Anomaly Ratio"
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            model:
+              expr: (rate(anomaly_type_total[5m]) / rate(events_total[5m])) * 100
+        for: 2m
+        annotations:
+          summary: "Anomaly ratio exceeded 20%"
+        labels:
+          severity: warning
+        notification_settings:
+          contactPoint: email-notifier
+
+      - uid: spike-severity-critical
+        title: "Critical Temperature Spike"
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            model:
+              expr: histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))
+        for: 1m
+        annotations:
+          summary: "95th percentile spike > 25°C"
+        labels:
+          severity: critical
+        notification_settings:
+          contactPoint: email-notifier

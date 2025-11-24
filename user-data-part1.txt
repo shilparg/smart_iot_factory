@@ -1,0 +1,264 @@
+# --- Create simulator source files ---
+cat > /opt/iot-simulator/Dockerfile <<'DOCKERFILE'
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY simulator.py .
+
+CMD ["python3", "simulator.py"]
+DOCKERFILE
+
+cat > /opt/iot-simulator/requirements.txt <<'REQS'
+prometheus-client==0.20.0
+AWSIoTPythonSDK==1.5.0
+requests==2.31.0
+REQS
+
+cat > /opt/iot-simulator/simulator.py <<'PYCODE'
+#!/usr/bin/env python3
+import random, time, logging, json
+from datetime import datetime
+from prometheus_client import Counter, Histogram, start_http_server
+
+logging.basicConfig(filename='/var/log/iot-simulator.log', level=logging.INFO)
+
+event_counter = Counter('events_total','Total events processed')
+anomaly_counter = Counter('anomaly_type_total','Total anomalies by type',['type'])
+anomaly_severity = Counter('anomaly_severity_total','Total anomalies by severity',['level'])
+temp_spike_hist = Histogram('temperature_spike_c','Distribution of temperature spikes',buckets=[5,10,15,20,25,30,35])
+
+def inject_anomaly(data):
+    anomaly_type = random.choices(
+        ["none","spike","drift","noise","freeze","combined"],
+        [0.7,0.1,0.05,0.1,0.03,0.02]
+    )[0]
+    if anomaly_type=="spike":
+        spike_value=random.uniform(15,35)
+        data['temperature_c']+=spike_value
+        temp_spike_hist.observe(spike_value)
+        anomaly_severity.labels(level="critical").inc()
+    elif anomaly_type=="drift":
+        data['temperature_c']+=random.uniform(0.1,0.5)
+        anomaly_severity.labels(level="warning").inc()
+    elif anomaly_type=="noise":
+        data['rpm']+=int(random.gauss(0,50))
+        anomaly_severity.labels(level="info").inc()
+    elif anomaly_type=="freeze":
+        anomaly_severity.labels(level="warning").inc()
+    elif anomaly_type=="combined":
+        data['temperature_c']+=random.uniform(5,15)
+        data['rpm']-=random.randint(100,300)
+        anomaly_severity.labels(level="critical").inc()
+    anomaly_counter.labels(type=anomaly_type).inc()
+    return data, anomaly_type
+
+def main():
+    start_http_server(8000)
+    while True:
+        data={"temperature_c":random.uniform(20,25),"rpm":random.randint(1500,2000)}
+        event_counter.inc()
+        data,atype=inject_anomaly(data)
+        logging.info(json.dumps({"timestamp":datetime.utcnow().isoformat(),"anomaly_type":atype,"values":data}))
+        time.sleep(2)
+
+if __name__=="__main__":
+    main()
+PYCODE
+
+# --- Extend Prometheus configuration ---
+cat > /opt/iot-simulator/prometheus.yml <<PROM
+global:
+  scrape_interval: 5s
+scrape_configs:
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+  - job_name: 'iot-simulator'
+    static_configs:
+      - targets: ['iot-simulator:8000']
+PROM
+
+# --- Grafana provisioning directories ---
+mkdir -p /opt/iot-simulator/grafana/provisioning/dashboards
+mkdir -p /opt/iot-simulator/grafana/provisioning/alerting
+mkdir -p /opt/iot-simulator/grafana/provisioning/notifiers
+
+# --- Grafana dashboard for anomalies ---
+cat > /opt/iot-simulator/grafana/provisioning/dashboards/anomalies.json <<'DASH'
+{
+  "dashboard": {
+    "title": "IoT Simulator Anomalies",
+    "schemaVersion": 36,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "type": "graph",
+        "title": "Anomaly Frequency by Type",
+        "datasource": "Prometheus",
+        "targets": [
+          { "expr": "rate(anomaly_type_total[5m])", "legendFormat": "{{type}}" }
+        ]
+      },
+      {
+        "type": "graph",
+        "title": "Anomaly Ratio (%)",
+        "datasource": "Prometheus",
+        "targets": [
+          { "expr": "(rate(anomaly_type_total[5m]) / rate(events_total[5m])) * 100", "legendFormat": "Anomaly Ratio" }
+        ]
+      },
+      {
+        "type": "bargauge",
+        "title": "Anomaly Severity Breakdown",
+        "datasource": "Prometheus",
+        "targets": [
+          { "expr": "anomaly_severity_total", "legendFormat": "{{level}}" }
+        ]
+      },
+      {
+        "type": "graph",
+        "title": "Temperature Spike Distribution",
+        "datasource": "Prometheus",
+        "targets": [
+          { "expr": "histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))", "legendFormat": "95th percentile spike" }
+        ]
+      },
+      {
+        "type": "alertlist",
+        "title": "Active Alerts",
+        "datasource": "Prometheus",
+        "options": { "show": "current", "stateFilter": ["alerting","pending"] }
+      }
+    ]
+  },
+  "overwrite": true
+}
+DASH
+
+# --- Grafana alerting rules ---
+cat > /opt/iot-simulator/grafana/provisioning/alerting/anomaly-alerts.yml <<'ALERTS'
+apiVersion: 1
+groups:
+  - name: anomaly-alerts
+    interval: 30s
+    rules:
+      - uid: anomaly-ratio-high
+        title: "High Anomaly Ratio"
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            model:
+              expr: (rate(anomaly_type_total[5m]) / rate(events_total[5m])) * 100
+        for: 2m
+        annotations:
+          summary: "Anomaly ratio exceeded 20%"
+        labels:
+          severity: warning
+        notification_settings:
+          contactPoint: email-notifier
+
+      - uid: spike-severity-critical
+        title: "Critical Temperature Spike"
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            model:
+              expr: histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))
+        for: 1m
+        annotations:
+          summary: "95th percentile spike > 25°C"
+        labels:
+          severity: critical
+        notification_settings:
+          contactPoint: email-notifier
+ALERTS
+
+# --- Grafana notifier scaffold (email optional) ---
+cat > /opt/iot-simulator/grafana/provisioning/notifiers/email.yml <<'EMAIL'
+notifiers:
+  - name: Email Alerts
+    type: email
+    uid: email-notifier
+    org_id: 1
+    is_default: true
+    settings:
+      addresses: ${alert_email_recipients}
+EMAIL
+
+# --- Generate Docker Compose ---
+cat > /opt/iot-simulator/docker-compose.yml <<'DOCKER'
+version: '3.8'
+services:
+  iot-simulator:
+    build: .
+    environment:
+      - AWS_ENDPOINT=${AWS_ENDPOINT}
+      - SIMULATOR_COUNT=${SIMULATOR_COUNT}
+    volumes:
+      - ./certs:/app/certs
+    restart: always
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      # --- Email alerting variables (optional, can be enabled later) ---
+      # GF_SMTP_ENABLED=true
+      # GF_SMTP_HOST=smtp.example.com:587
+      # GF_SMTP_USER=${smtp_user}
+      # GF_SMTP_PASSWORD=${smtp_password}
+      # GF_SMTP_SKIP_VERIFY=true
+      # GF_SMTP_FROM_ADDRESS=alerts@example.com
+      # GF_SMTP_FROM_NAME=IoT Simulator Alerts
+      # GF_SMTP_STARTTLS_POLICY=OpportunisticStartTLS
+      # alert_email_recipients=you@example.com,team@example.com
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+DOCKER
+
+# Start containers
+echo "Starting Docker containers..."
+cd /opt/iot-simulator
+docker-compose up -d
+
+# --- Health checks and audit logging ---
+echo "Validating container health..."
+docker-compose ps
+
+echo "Checking Docker service status..."
+systemctl status docker --no-pager || echo "⚠️ Docker service not healthy"
+
+echo "Checking AWS CLI version..."
+aws --version || echo "⚠️ AWS CLI not found"
+
+echo "Checking Python version..."
+python3 --version || echo "⚠️ Python3 not found"
+
+echo "Listing simulator logs..."
+docker logs iot-simulator --tail 20 || echo "⚠️ Simulator logs unavailable"
+
+echo "Listing Prometheus targets..."
+curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets' || echo "⚠️ Prometheus targets check failed"
+
+echo "=== IoT Simulator bootstrap complete ==="

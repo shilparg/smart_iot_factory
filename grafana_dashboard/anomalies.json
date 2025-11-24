@@ -1,0 +1,16 @@
+{
+  "type": "alertlist",
+  "title": "Active Alerts",
+  "datasource": "Prometheus",
+  "options": {
+    "show": "current", // show currently firing alerts
+    "sortOrder": "Importance",
+    "stateFilter": ["alerting", "pending"]
+  },
+  "gridPos": {
+    "h": 8,
+    "w": 24,
+    "x": 0,
+    "y": 20
+  }
+}
