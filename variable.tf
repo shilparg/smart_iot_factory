@@ -50,6 +50,10 @@ variable "cert_files" {
   }
 }
 
+variable "alert_email_recipients" {
+  type        = list(string)
+  description = "List of email addresses to receive alerts"
+}
 # ✅ Optional: Use locals for dynamic naming
 # locals {
 #   cert_s3_bucket = "iot-simulator-certs-${var.environment}"

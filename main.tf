@@ -128,6 +128,8 @@ resource "aws_instance" "sim_host" {
     cert_s3_bucket  = aws_s3_bucket.cert_bucket.id #var.cert_s3_bucket
     region          = var.region
     aws_endpoint    = data.aws_iot_endpoint.iot.endpoint_address
+    iot_topic       = "factory/plant1/line1"
+    alert_email_recipients = join(",", var.alert_email_recipients)
   })
 
   tags = { Name = "cet11-grp1-iot-sim-host-${var.environment}" }
@@ -219,7 +221,7 @@ resource "aws_iot_thing_principal_attachment" "attach_cert" {
 resource "aws_s3_bucket_object" "certs" {
   for_each = var.cert_files
 
-  bucket = aws_s3_bucket.cert_bucket.id   # use .id instead of .bucket
+  bucket = aws_s3_bucket.cert_bucket.bucket   # use .id instead of .bucket
   key    = each.value                     # S3 object key (filename)
   source = "${path.module}/certs/${each.value}"
   etag   = filemd5("${path.module}/certs/${each.value}")
