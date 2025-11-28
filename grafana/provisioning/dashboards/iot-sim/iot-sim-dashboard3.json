@@ -1,0 +1,91 @@
+{
+  "id": null,
+  "title": "IoT Simulator + System Health",
+  "tags": ["iot", "simulator", "system", "prometheus"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Machine Temperature (°C)",
+      "targets": [
+        {
+          "expr": "machine_temperature",
+          "legendFormat": "{{device}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Machine Vibration (m/s²)",
+      "targets": [
+        {
+          "expr": "machine_vibration",
+          "legendFormat": "{{device}}",
+          "refId": "B"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Machine RPM",
+      "targets": [
+        { "expr": "machine_rpm", "legendFormat": "{{device}}", "refId": "C" }
+      ],
+      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 }
+    },
+    {
+      "type": "barchart",
+      "title": "Anomaly Type Frequency (last 5m)",
+      "targets": [
+        {
+          "expr": "count_over_time(anomaly_type_total[5m])",
+          "legendFormat": "{{type}}",
+          "refId": "D"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 6 }
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU Usage (%)",
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance)(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU Usage",
+          "refId": "E"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 22, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory Available (MB)",
+      "targets": [
+        {
+          "expr": "node_memory_MemAvailable_bytes / 1024 / 1024",
+          "legendFormat": "Available Memory",
+          "refId": "F"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 22, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Space Available (GB)",
+      "targets": [
+        {
+          "expr": "node_filesystem_avail_bytes{fstype!=\"tmpfs\"} / 1024 / 1024 / 1024",
+          "legendFormat": "{{mountpoint}}",
+          "refId": "G"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 30, "w": 24, "h": 8 }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+notifiers:
+  - name: Email Alerts
+    type: email
+    uid: email-notifier
+    org_id: 1
+    is_default: true
+    settings:
+      addresses: ${alert_email_recipients}

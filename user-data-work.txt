@@ -1,6 +1,5 @@
 #!/bin/bash
-#set -e
-set -euo pipefail
+set -e
 exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
 
 ##########################################
@@ -38,17 +37,7 @@ chmod +x /usr/local/bin/docker-compose
 ##########################################
 # Prepare directory structure
 ##########################################
-mkdir -p /opt/iot-simulator/app
-mkdir -p /opt/iot-simulator/config
 mkdir -p /opt/iot-simulator/certs
-
-# --- Grafana provisioning directories ---
-mkdir -p /opt/iot-simulator/grafana
-mkdir -p /opt/iot-simulator/grafana/provisioning
-mkdir -p /opt/iot-simulator/grafana/provisioning/dashboards
-mkdir -p /opt/iot-simulator/grafana/provisioning/alerting
-mkdir -p /opt/iot-simulator/grafana/provisioning/notifiers
-
 cd /opt/iot-simulator
 
 ##########################################
@@ -75,54 +64,6 @@ for file in AmazonRootCA1.pem device-certificate.pem.crt private.pem.key; do
   fi
 done
 
-
-##############################################
-# Download config files from config bucket
-##############################################
-
-##########################################
-# Prometheus configuration
-##########################################
-##########################################
-# Prometheus configuration
-##########################################
-aws s3 cp "s3://${config_s3_bucket}/iot-simulator/prometheus.yml" \
-  ./config/prometheus.yml
-
-##########################################
-# Grafana main configuration
-##########################################
-aws s3 cp "s3://${config_s3_bucket}/grafana/provisioning/grafana.ini" \
-  ./config/grafana.ini
-
-#####################################################
-# --- Grafana dashboards (JSON + dashboards.yml) ---
-#####################################################
-aws s3 cp "s3://${config_s3_bucket}/grafana/provisioning/dashboards/anomalies.json" \
-  ./config/dashboards/anomalies.json
-
-aws s3 cp "s3://${config_s3_bucket}/grafana/provisioning/dashboards/dashboards.yml" \
-  ./config/dashboards/dashboards.yml
-
-#####################################################
-# --- Grafana alerting rules ---
-#####################################################
-aws s3 cp "s3://${config_s3_bucket}/grafana/provisioning/alerting/anomaly-alerts.yml" \
-  ./config/alerting/anomaly-alerts.yml
-
-#####################################################
-# --- Grafana notifier scaffold (email optional) ---
-#####################################################
-aws s3 cp "s3://${config_s3_bucket}/grafana/provisioning/notifiers/email.yml" \
-  ./config/notifiers/email.yml
-
-##########################################
-# IoT Simulator Python
-##########################################
-aws s3 cp "s3://${config_s3_bucket}/iot-simulator/iot-simulator.py" \
-  ./app/iot_simulator.py
-chmod +x ./app/iot_simulator.py
-
 ##########################################
 # (Optional) Install Python IoT SDK
 ##########################################
@@ -139,6 +80,46 @@ pyOpenSSL
 AWSIoTPythonSDK==1.5.0
 requests==2.31.0
 REQ
+
+##########################################
+# Write iot_simulator.py (FULL EMBEDDED)
+##########################################
+cat > /opt/iot-simulator/iot_simulator.py << 'PYCODE'
+
+PYCODE
+
+##########################################
+# Prometheus configuration
+##########################################
+cat > /opt/iot-simulator/prometheus.yml <<PROM
+
+PROM
+
+# --- Grafana provisioning directories ---
+mkdir -p /opt/iot-simulator/grafana/provisioning/dashboards
+mkdir -p /opt/iot-simulator/grafana/provisioning/alerting
+mkdir -p /opt/iot-simulator/grafana/provisioning/notifiers
+
+#####################################################
+# --- Grafana dashboard for anomalies ---
+#####################################################
+cat > /opt/iot-simulator/grafana/provisioning/dashboards/anomalies.json <<'DASH'
+
+DASH
+
+#####################################################
+# --- Grafana alerting rules ---
+#####################################################
+cat > /opt/iot-simulator/grafana/provisioning/alerting/anomaly-alerts.yml <<'ALERTS'
+
+ALERTS
+
+#####################################################
+# --- Grafana notifier scaffold (email optional) ---
+#####################################################
+cat > /opt/iot-simulator/grafana/provisioning/notifiers/email.yml <<'EMAIL'
+
+EMAIL
 
 ##########################################
 # Write Dockerfile
@@ -179,7 +160,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9090:9090"
 
@@ -189,8 +170,6 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       # --- Email alerting variables (optional, can be enabled later) ---
       # GF_SMTP_ENABLED=true
       # GF_SMTP_HOST=smtp.example.com:587
@@ -202,26 +181,7 @@ services:
       # GF_SMTP_STARTTLS_POLICY=OpportunisticStartTLS
       # alert_email_recipients=you@example.com,team@example.com
     volumes:
-      # Main Grafana config
-      - ./config/grafana.ini:/etc/grafana/grafana.ini
-
-      # Provisioned dashboards (requires dashboards.yml + anomalies.json)
-      - ./config/dashboards:/etc/grafana/provisioning/dashboards
-
-      # Alerting rules
-      - ./config/alerting:/etc/grafana/provisioning/alerting
-
-      # Notifiers (e.g. email)
-      - ./config/notifiers:/etc/grafana/provisioning/notifiers
-
-  iot-simulator:
-    image: python:3.11-slim
-    container_name: iot-simulator
-    volumes:
-      - ./app:/opt/iot-simulator/app
-    working_dir: /opt/iot-simulator/app
-    command: ["python", "iot_simulator.py"]
-
+      - ./grafana/provisioning:/etc/grafana/provisioning
 COMPOSE
 
 ##########################################
@@ -231,10 +191,7 @@ echo "Starting Docker containers..."
 cd /opt/iot-simulator
 docker-compose up -d
 
-##########################################
 # --- Health checks and audit logging ---
-##########################################
-
 echo "Validating container health..."
 docker-compose ps
 

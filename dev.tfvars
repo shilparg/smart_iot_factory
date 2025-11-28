@@ -15,6 +15,8 @@ allowed_cidr    = "0.0.0.0/0"
 
 # S3 bucket name for storing IoT certificates
 # Explicitly set here instead of interpolating in variable default
-cert_s3_bucket  = "cet11-grp1-iot-simulator-certs-dev"
+cert_s3_bucket  = "ce11-grp1-iot-simulator-certs-dev"
 
+# S3 bucket for configurations
+config_s3_bucket  = "ce11-grp1-iot-simulator-certs-dev"
 alert_email_recipients = ["shilparg_2000@yahoo.com"] #["shilparg_2000@yahoo.com", "dev@example.com"]

@@ -114,6 +114,89 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
+# ─────────────────────────────────────────────
+# Prometheus Config
+# ─────────────────────────────────────────────
+resource "aws_s3_object" "prometheus_config" {
+  bucket = aws_s3_bucket.config_bucket.bucket
+  key    = "prometheus/prometheus.yml"
+  source = "${path.module}/prometheus/prometheus.yml"
+  etag   = filemd5("${path.module}/prometheus/prometheus.yml")
+}
+
+# ─────────────────────────────────────────────
+# Grafana Main Config
+# ─────────────────────────────────────────────
+resource "aws_s3_object" "grafana_ini" {
+  bucket = aws_s3_bucket.config_bucket.bucket
+  key    = "grafana/provisioning/grafana.ini"
+  source = "${path.module}/grafana/provisioning/grafana.ini"
+  etag   = filemd5("${path.module}/grafana/provisioning/grafana.ini")
+}
+
+# ─────────────────────────────────────────────
+# Grafana Dashboards
+# ─────────────────────────────────────────────
+resource "aws_s3_object" "grafana_dashboards_config" {
+  bucket = aws_s3_bucket.config_bucket.bucket
+  key    = "grafana/provisioning/dashboards/dashboards.yml"
+  source = "${path.module}/grafana/provisioning/dashboards/dashboards.yml"
+  etag   = filemd5("${path.module}/grafana/provisioning/dashboards/dashboards.yml")
+}
+
+resource "aws_s3_object" "grafana_dashboard_system_health" {
+  bucket = aws_s3_bucket.config_bucket.bucket
+  key    = "grafana/provisioning/dashboards/system-health/system-health.json"
+  source = "${path.module}/grafana/provisioning/dashboards/system-health/system-health.json"
+  etag   = filemd5("${path.module}/grafana/provisioning/dashboards/system-health/system-health.json")
+}
+
+resource "aws_s3_object" "grafana_dashboard_latency" {
+  bucket = aws_s3_bucket.config_bucket.bucket
+  key    = "grafana/provisioning/dashboards/latency/latency.json"
+  source = "${path.module}/grafana/provisioning/dashboards/latency/latency.json"
+  etag   = filemd5("${path.module}/grafana/provisioning/dashboards/latency/latency.json")
+}
+
+# ─────────────────────────────────────────────
+# Grafana Notifiers
+# ─────────────────────────────────────────────
+resource "aws_s3_object" "grafana_notifier_email" {
+  bucket = aws_s3_bucket.config_bucket.bucket
+  key    = "grafana/provisioning/notifiers/email.yml"
+  source = "${path.module}/grafana/provisioning/notifiers/email.yml"
+  etag   = filemd5("${path.module}/grafana/provisioning/notifiers/email.yml")
+}
+
+# ─────────────────────────────────────────────
+# IoT Simulator Script
+# ─────────────────────────────────────────────
+resource "aws_s3_object" "iot_simulator_script" {
+  bucket = aws_s3_bucket.config_bucket.bucket
+  key    = "iot-simulator/iot-simulator.py"
+  source = "${path.module}/iot-simulator/iot_simulator.py"
+  etag   = filemd5("${path.module}/iot-simulator/iot_simulator.py")
+}
+
+
+locals {
+  dashboard_files = {
+    "anomalies/anomalies.json"       = "grafana/provisioning/dashboards/anomalies/anomalies.json"
+    "system-health/system-health.json" = "grafana/provisioning/dashboards/system-health/system-health.json"
+    "latency/latency.json"           = "grafana/provisioning/dashboards/latency/latency.json"
+    "iot-sim/iot-sim-dashboard3.json" = "grafana/provisioning/dashboards/iot-sim/iot-sim-dashboard3.json"
+  }
+}
+
+resource "aws_s3_object" "grafana_dashboards" {
+  for_each = local.dashboard_files
+
+  bucket = aws_s3_bucket.config_bucket.bucket
+  key    = "grafana/provisioning/dashboards/${each.key}"
+  source = "${path.module}/${each.value}"
+  etag   = filemd5("${path.module}/${each.value}")
+}
+
 # EC2 Instance
 resource "aws_instance" "sim_host" {
   ami                    = data.aws_ami.amazon_linux.id
@@ -123,16 +206,16 @@ resource "aws_instance" "sim_host" {
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
-  user_data = templatefile("${path.module}/user-data.sh.tpl", {
-    simulator_count = var.simulator_count
-    cert_s3_bucket  = aws_s3_bucket.cert_bucket.id #var.cert_s3_bucket
-    region          = var.region
-    aws_endpoint    = data.aws_iot_endpoint.iot.endpoint_address
-    iot_topic       = "factory/plant1/line1"
-    alert_email_recipients = join(",", var.alert_email_recipients)
-  })
+  # user_data = templatefile("${path.module}/user-data.sh.tpl", {
+  #   simulator_count = var.simulator_count
+  #   cert_s3_bucket  = aws_s3_bucket.cert_bucket.id #var.cert_s3_bucket
+  #   region          = var.region
+  #   aws_endpoint    = data.aws_iot_endpoint.iot.endpoint_address
+  #   iot_topic       = "factory/plant1/line1"
+  #   alert_email_recipients = join(",", var.alert_email_recipients)
+  # })
 
-  tags = { Name = "cet11-grp1-iot-sim-host-${var.environment}" }
+  tags = { Name = "ce11-grp1-iot-sim-host-${var.environment}" }
 }
 
 # S3 Bucket for IoT Certs
@@ -218,20 +301,11 @@ resource "aws_iot_thing_principal_attachment" "attach_cert" {
 #   etag   = filemd5("${path.module}/certs/${each.value}")
 # }
 
-resource "aws_s3_bucket_object" "certs" {
+resource "aws_s3_object" "certs" {
   for_each = var.cert_files
 
-  bucket = aws_s3_bucket.cert_bucket.bucket   # use .id instead of .bucket
+  bucket = aws_s3_bucket.cert_bucket.id   # use .id instead of .bucket
   key    = each.value                     # S3 object key (filename)
   source = "${path.module}/certs/${each.value}"
   etag   = filemd5("${path.module}/certs/${each.value}")
 }
-
-# resource "aws_s3_bucket_object" "certs" {
-#   for_each = var.cert_files
-
-#   bucket = aws_s3_bucket.cert_bucket.bucket
-#   key    = each.value         # S3 object name
-#   source = "${path.module}/${each.value}"  # Full path to local file
-#   etag   = filemd5("${path.module}/${each.value}")
-# }

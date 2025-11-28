@@ -1,0 +1,42 @@
+apiVersion: 1
+
+providers:
+  # --- Anomalies dashboard ---
+  - name: "anomalies"
+    orgId: 1
+    folder: "Anomalies"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /etc/grafana/provisioning/dashboards/anomalies
+
+  # --- System health dashboards ---
+  - name: "system-health"
+    orgId: 1
+    folder: "System Health"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /etc/grafana/provisioning/dashboards/system-health
+
+  # --- Latency dashboards ---
+  - name: "latency"
+    orgId: 1
+    folder: "Latency"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /etc/grafana/provisioning/dashboards/latency
+
+  # --- IoT Sim dashboards ---
+  - name: "latency"
+    orgId: 1
+    folder: "Latency"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /etc/grafana/provisioning/dashboards/iot-sim

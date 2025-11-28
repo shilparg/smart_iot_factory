@@ -3,7 +3,7 @@
   "title": "Active Alerts",
   "datasource": "Prometheus",
   "options": {
-    "show": "current", // show currently firing alerts
+    "show": "current",
     "sortOrder": "Importance",
     "stateFilter": ["alerting", "pending"]
   },

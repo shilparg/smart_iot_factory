@@ -1,0 +1,36 @@
+{
+  "id": null,
+  "uid": "system-health",
+  "title": "System Health Overview",
+  "tags": ["system", "health"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "panels": [
+    {
+      "type": "graph",
+      "title": "CPU Usage",
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance)(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Memory Usage",
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Disk Usage",
+      "targets": [
+        { "expr": "node_filesystem_size_bytes - node_filesystem_avail_bytes" }
+      ]
+    }
+  ]
+}
