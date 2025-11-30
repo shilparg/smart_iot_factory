@@ -2,10 +2,16 @@
 # EC2 Simulator Outputs
 ########################################
 
-output "instance_public_ip" {
-  description = "Public IP address of the IoT simulator EC2 host"
+output "sim_host_public_ip" {
+  description = "Public IP of the IoT simulator host"
   value       = aws_instance.sim_host.public_ip
 }
+
+output "sim_host_public_dns" {
+  description = "Public DNS of the IoT simulator host"
+  value       = aws_instance.sim_host.public_dns
+}
+
 
 output "grafana_url" {
   description = "Grafana dashboard URL on the simulator host"
@@ -40,6 +46,11 @@ output "iot_certificate_arn" {
   value       = aws_iot_certificate.sim_cert.arn
 }
 
+output "iot_certificate_id" {
+  description = "ID of the IoT simulator certificate"
+  value       = aws_iot_certificate.sim_cert.id
+}
+
 output "iot_thing_name" {
   description = "Logical name of the IoT Thing resource"
   value       = aws_iot_thing.simulator.name
@@ -50,18 +61,26 @@ output "iot_policy_name" {
   value       = aws_iot_policy.sim_policy.name
 }
 
-########################################
-# S3 Certificate Storage Outputs
-########################################
+############################################
+# S3 Buckets
+############################################
+output "config_bucket_name" {
+  description = "Name of the S3 bucket holding Prometheus/Grafana configs"
+  value       = local.config_bucket
+}
 
 output "cert_bucket_name" {
-  description = "S3 bucket name where IoT certificates and keys are stored"
-  value       = aws_s3_bucket.cert_bucket.bucket
+  description = "Name of the S3 bucket holding IoT certificates"
+  value       = local.cert_bucket
 }
 
-output "cert_bucket_objects" {
+############################################
+# IoT Certificates
+############################################
+output "certs" {
   description = "List of uploaded certificate/key object keys in S3"
-  value       = [for obj in aws_s3_bucket_object.certs : obj.key]
+  value       = [for obj in aws_s3_object.certs : obj.key]
 }
+
 
 #output "iot_endpoint" { value = aws_iot_certificate.sim_cert.id } # can replace with actual endpoint if needed

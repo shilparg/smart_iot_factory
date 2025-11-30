@@ -1,4 +1,5 @@
 #!/bin/bash
+#set -e
 set -euo pipefail
 exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
 
@@ -7,10 +8,9 @@ exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&
 ##########################################
 SIMULATOR_COUNT=${simulator_count}
 CERT_BUCKET=${cert_s3_bucket}
-CONFIG_BUCKET=${config_s3_bucket}
 REGION=${region}
 AWS_ENDPOINT=${aws_endpoint}
-IOT_TOPIC=${iot_topic}
+IOT_TOPIC=${iot_topic} #"factory/plant1/line1"
 ALERT_EMAIL_RECIPIENTS="${alert_email_recipients}"
 
 echo "=== Starting IoT Simulator bootstrap ==="
@@ -24,7 +24,6 @@ echo "AWS IoT endpoint: $AWS_ENDPOINT"
 ##########################################
 yum update -y
 amazon-linux-extras install docker -y || dnf install docker -y
-yum install -y python3 python3-pip jq
 systemctl enable docker
 systemctl start docker
 usermod -aG docker ec2-user
@@ -37,31 +36,36 @@ curl -SL "https://github.com/docker/compose/releases/download/v2.24.6/docker-com
 chmod +x /usr/local/bin/docker-compose
 
 ##########################################
-# Create directory structure
+# Prepare directory structure
 ##########################################
 mkdir -p /opt/iot-simulator/app
-mkdir -p /opt/iot-simulator/certs
 mkdir -p /opt/iot-simulator/config
-mkdir -p /opt/iot-simulator/config/dashboards
-mkdir -p /opt/iot-simulator/config/alerting
-mkdir -p /opt/iot-simulator/config/notifiers
+mkdir -p /opt/iot-simulator/certs
+
+# --- Grafana provisioning directories ---
+mkdir -p /opt/iot-simulator/grafana
+mkdir -p /opt/iot-simulator/grafana/provisioning
+mkdir -p /opt/iot-simulator/grafana/provisioning/dashboards
+mkdir -p /opt/iot-simulator/grafana/provisioning/alerting
+mkdir -p /opt/iot-simulator/grafana/provisioning/notifiers
 
 cd /opt/iot-simulator
 
 ##########################################
-# Download AWS IoT Certificates
+# Download AWS IoT Certificates from S3
 ##########################################
-aws s3 cp s3://${cert_s3_bucket}/AmazonRootCA1.pem certs/AmazonRootCA1.pem --region $REGION
-aws s3 cp s3://${cert_s3_bucket}/device-certificate.pem.crt certs/device-certificate.pem.crt --region $REGION
-aws s3 cp s3://${cert_s3_bucket}/private.pem.key certs/private.pem.key --region $REGION
+aws s3 cp s3://${cert_s3_bucket}/AmazonRootCA1.pem /opt/iot-simulator/certs/AmazonRootCA1.pem --region $REGION
+aws s3 cp s3://${cert_s3_bucket}/device-certificate.pem.crt /opt/iot-simulator/certs/device-certificate.pem.crt --region $REGION
+aws s3 cp s3://${cert_s3_bucket}/private.pem.key /opt/iot-simulator/certs/private.pem.key --region $REGION
 
-chmod 600 certs/*
+chmod 600 /opt/iot-simulator/certs/*
 chown -R ec2-user:ec2-user /opt/iot-simulator
 
 ##########################################
 #    Validate certificates 
 ##########################################
 echo "Validating certificates..."
+
 for file in AmazonRootCA1.pem device-certificate.pem.crt private.pem.key; do
   if [ ! -f "/opt/iot-simulator/certs/$file" ]; then
     echo "❌ ERROR: Missing /opt/iot-simulator/certs/$file"
@@ -71,44 +75,64 @@ for file in AmazonRootCA1.pem device-certificate.pem.crt private.pem.key; do
   fi
 done
 
+
+##############################################
+# Download config files from config bucket
+##############################################
+
 ##########################################
-# Download Config Files
+# Prometheus configuration
 ##########################################
-echo "Downloading Prometheus config..."
+##########################################
+# Prometheus configuration
+##########################################
 aws s3 cp "s3://${config_s3_bucket}/iot-simulator/prometheus.yml" \
-  config/prometheus.yml
+  ./config/prometheus.yml
 
-echo "Downloading Grafana main configuration..."
+##########################################
+# Grafana main configuration
+##########################################
 aws s3 cp "s3://${config_s3_bucket}/grafana/provisioning/grafana.ini" \
-  config/grafana.ini
+  ./config/grafana.ini
 
-echo "Downloading Grafana dashboards..."
+#####################################################
+# --- Grafana dashboards (JSON + dashboards.yml) ---
+#####################################################
 aws s3 cp "s3://${config_s3_bucket}/grafana/provisioning/dashboards/anomalies.json" \
-  config/dashboards/anomalies.json
+  ./config/dashboards/anomalies.json
 
 aws s3 cp "s3://${config_s3_bucket}/grafana/provisioning/dashboards/dashboards.yml" \
-  config/dashboards/dashboards.yml
+  ./config/dashboards/dashboards.yml
 
-echo "Downloading Grafana alert rules..."
+#####################################################
+# --- Grafana alerting rules ---
+#####################################################
 aws s3 cp "s3://${config_s3_bucket}/grafana/provisioning/alerting/anomaly-alerts.yml" \
-  config/alerting/anomaly-alerts.yml
+  ./config/alerting/anomaly-alerts.yml
 
-echo "Downloading Grafana notifier config..."
+#####################################################
+# --- Grafana notifier scaffold (email optional) ---
+#####################################################
 aws s3 cp "s3://${config_s3_bucket}/grafana/provisioning/notifiers/email.yml" \
-  config/notifiers/email.yml
+  ./config/notifiers/email.yml
 
 ##########################################
-# Install IoT Simulator Python script
+# IoT Simulator Python
 ##########################################
 aws s3 cp "s3://${config_s3_bucket}/iot-simulator/iot-simulator.py" \
-  app/iot_simulator.py
-
-chmod +x app/iot_simulator.py
+  ./app/iot_simulator.py
+chmod +x ./app/iot_simulator.py
 
 ##########################################
-# requirements.txt
+# (Optional) Install Python IoT SDK
 ##########################################
-cat > requirements.txt << 'REQ'
+yum install -y python3 pip
+pip3 install AWSIoTPythonSDK
+
+##########################################
+# Write requirements.txt
+##########################################
+cat > /opt/iot-simulator/requirements.txt << 'REQ'
 paho-mqtt
 prometheus_client
 pyOpenSSL
@@ -117,38 +141,32 @@ requests==2.31.0
 REQ
 
 ##########################################
-# Dockerfile (Option A - Build Image)
+# Write Dockerfile
 ##########################################
-cat > Dockerfile << 'DF'
+cat > /opt/iot-simulator/Dockerfile << 'DF'
 FROM python:3.11-slim
 WORKDIR /app
-
-COPY requirements.txt ./
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-COPY app ./app
-COPY certs ./certs
-
+COPY . .
 ENV CERT_DIR=/app/certs
 EXPOSE 9100
-
-CMD ["python3", "app/iot_simulator.py"]
+CMD ["python3", "iot_simulator.py"]
 DF
 
 ##########################################
-# docker-compose.yml (with your commented Grafana config)
+# Write docker-compose.yml
 ##########################################
-cat > docker-compose.yml << EOF
+cat > /opt/iot-simulator/docker-compose.yml << 'COMPOSE'
 version: "3.8"
-
 services:
   iot-simulator:
     build: .
     environment:
-      AWS_ENDPOINT: "${aws_endpoint}"
-      SIMULATOR_COUNT: "${simulator_count}"
-      CERT_DIR: "/app/certs"
-      IOT_TOPIC: "${iot_topic}"
+      - AWS_ENDPOINT=${aws_endpoint}
+      - SIMULATOR_COUNT=${simulator_count}
+      - CERT_DIR=/app/certs
+      - IOT_TOPIC=factory/plant1/line1
     volumes:
       - ./certs:/app/certs:ro
     restart: always
@@ -161,7 +179,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
 
@@ -173,31 +191,44 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
-
-      # --- Email alerting variables (optional; keep for future use) ---
+      # --- Email alerting variables (optional, can be enabled later) ---
       # GF_SMTP_ENABLED=true
       # GF_SMTP_HOST=smtp.example.com:587
-      # GF_SMTP_USER=$${smtp_user}
-      # GF_SMTP_PASSWORD=$${smtp_password}
+      # GF_SMTP_USER= $${smtp_user}
+      # GF_SMTP_PASSWORD= $${smtp_password}
       # GF_SMTP_SKIP_VERIFY=true
       # GF_SMTP_FROM_ADDRESS=alerts@example.com
       # GF_SMTP_FROM_NAME=IoT Simulator Alerts
       # GF_SMTP_STARTTLS_POLICY=OpportunisticStartTLS
       # alert_email_recipients=you@example.com,team@example.com
-
     volumes:
+      # Main Grafana config
       - ./config/grafana.ini:/etc/grafana/grafana.ini
+
+      # Provisioned dashboards (requires dashboards.yml + anomalies.json)
       - ./config/dashboards:/etc/grafana/provisioning/dashboards
+
+      # Alerting rules
       - ./config/alerting:/etc/grafana/provisioning/alerting
+
+      # Notifiers (e.g. email)
       - ./config/notifiers:/etc/grafana/provisioning/notifiers
-EOF
+
+  iot-simulator:
+    image: python:3.11-slim
+    container_name: iot-simulator
+    volumes:
+      - ./app:/opt/iot-simulator/app
+    working_dir: /opt/iot-simulator/app
+    command: ["python", "iot_simulator.py"]
+
+COMPOSE
 
 ##########################################
 # Start stack
 ##########################################
 echo "Starting Docker containers..."
 cd /opt/iot-simulator
-
 docker-compose up -d
 
 ##########################################
@@ -214,10 +245,10 @@ echo "Checking AWS CLI version..."
 aws --version || echo "⚠️ AWS CLI not found"
 
 echo "Checking Python version..."
-python3 --version || echo "⚠️ Python not found"
+python3 --version || echo "⚠️ Python3 not found"
 
 echo "Listing simulator logs..."
-docker logs iot-simulator --tail 20 || echo "⚠️ No simulator logs available yet"
+docker logs iot-simulator --tail 20 || echo "⚠️ Simulator logs unavailable"
 
 echo "Listing Prometheus targets..."
 curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets' || echo "⚠️ Prometheus targets check failed"

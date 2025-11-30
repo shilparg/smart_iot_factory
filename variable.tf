@@ -16,11 +16,6 @@ variable "instance_type" {
   description = "EC2 instance type for simulator host"
 }
 
-variable "key_name" {
-  type        = string
-  description = "SSH keypair name for EC2 instance access"
-}
-
 variable "simulator_count" {
   type    = number
   default = 2
@@ -33,11 +28,16 @@ variable "allowed_cidr" {
   description = "CIDR block allowed to access EC2 services (e.g., SSH, Grafana, Prometheus)"
 }
 
-# Keep this variable simple, no interpolation in default
+variable "config_s3_bucket" {
+  type        = string
+  description = "S3 bucket name for storing Prometheus/Grafana configs"
+  default     = "ce11-grp1-iot-sim-config-dev"
+}
+
 variable "cert_s3_bucket" {
   type        = string
   description = "S3 bucket name for storing IoT certificates"
-  default     = "cet11-grp1-iot-simulator-certs-dev"
+  default     = "ce11-grp1-iot-sim-certs-dev"
 }
 
 variable "cert_files" {
@@ -53,7 +53,21 @@ variable "cert_files" {
 variable "alert_email_recipients" {
   type        = list(string)
   description = "List of email addresses to receive alerts"
+  default     = ["shilparg_2000@yahoo.com"]
 }
+
+variable "key_name" {
+  type        = string
+  description = "SSH keypair name for EC2 instance access"
+  default     = "grp1-ec2-keypair.pem"
+}
+
+variable "iot_topic" {
+  type        = string
+  default     = "factory/plant1/line1"
+  description = "MQTT topic for simulator publishing"
+}
+
 # ✅ Optional: Use locals for dynamic naming
 # locals {
 #   cert_s3_bucket = "iot-simulator-certs-${var.environment}"
