@@ -28,6 +28,10 @@ mkdir -p /opt/iot-simulator/app
 mkdir -p /opt/iot-simulator/certs
 mkdir -p /opt/iot-simulator/config
 mkdir -p /opt/iot-simulator/config/dashboards
+mkdir -p /opt/iot-simulator/config/dashboards/anomalies
+mkdir -p /opt/iot-simulator/config/dashboards/iot-sim
+mkdir -p /opt/iot-simulator/config/dashboards/latency
+mkdir -p /opt/iot-simulator/config/dashboards/system-health
 mkdir -p /opt/iot-simulator/config/alerting
 mkdir -p /opt/iot-simulator/config/notifiers
 cd /opt/iot-simulator
@@ -93,7 +97,10 @@ done
 ##########################################
 s3_copy_file "s3://${config_s3_bucket}/iot-simulator/prometheus.yml" "/opt/iot-simulator/config/prometheus.yml"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/grafana.ini" "/opt/iot-simulator/config/grafana.ini"
-s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/anomalies.json" "/opt/iot-simulator/config/dashboards/anomalies.json"
+s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/anomalies/anomalies.json" "/opt/iot-simulator/config/dashboards/anomalies/anomalies.json"
+s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/iot-sim/iot-sim-dashboard3.json" "/opt/iot-simulator/config/dashboards/iot-sim/iot-sim-dashboard3.json"
+s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/latency/latency.json" "/opt/iot-simulator/config/dashboards/latency/latency.json"
+s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/system-health/system-health.json" "/opt/iot-simulator/config/dashboards/system-health/system-health.json"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/dashboards.yml" "/opt/iot-simulator/config/dashboards/dashboards.yml"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/alerting/anomaly-alerts.yml" "/opt/iot-simulator/config/alerting/anomaly-alerts.yml"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/notifiers/email.yml" "/opt/iot-simulator/config/notifiers/email.yml"

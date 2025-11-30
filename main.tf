@@ -303,6 +303,13 @@ resource "aws_s3_object" "grafana_notifier_email" {
   etag   = filemd5("${path.module}/grafana/provisioning/notifiers/email.yml")
 }
 
+resource "aws_s3_object" "grafana_alerting_anomaly_alerts" {
+  bucket = local.config_bucket #aws_s3_bucket.config_bucket.bucket
+  key    = "grafana/provisioning/alerting/anomaly-alerts.yml"
+  source = "${path.module}/grafana/provisioning/alerting/anomaly-alerts.yml"
+  etag   = filemd5("${path.module}/grafana/provisioning/alerting/anomaly-alerts.yml")
+}
+
 resource "aws_s3_object" "iot_simulator_script" {
   bucket = local.config_bucket #aws_s3_bucket.config_bucket.bucket
   key    = "iot-simulator/iot-simulator.py"
