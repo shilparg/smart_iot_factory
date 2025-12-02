@@ -1,0 +1,14 @@
+[Unit]
+Description=IoT Simulator Healthcheck
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/iot-simulator/healthcheck.sh
+StandardOutput=journal
+StandardError=journal
+User=ec2-user
+
+[Install]
+WantedBy=multi-user.target

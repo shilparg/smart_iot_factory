@@ -1,0 +1,9 @@
+[Unit]
+Description=Run IoT Simulator Healthcheck periodically
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+
+[Install]
+WantedBy=timers.target

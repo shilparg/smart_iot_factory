@@ -43,18 +43,38 @@ ls -R /opt/iot-simulator
 ##########################################
 yum update -y
 amazon-linux-extras install docker -y || dnf install docker -y
-yum install -y python3 python3-pip jq
+yum install -y python3 python3-pip jq curl
+
+# Enable and start Docker
 systemctl enable docker
 systemctl start docker
+
+# Add ec2-user to Docker group for non-sudo access
 usermod -aG docker ec2-user
+newgrp docker <<'EOT'
+echo "Docker group applied for ec2-user"
+EOT
 
 ##########################################
 # Install Docker Compose v2
 ##########################################
-curl -SL "https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-$(uname -s)-$(uname -m)" \
+echo "=== Installing Docker Compose ==="
+
+# Hardcoded Docker Compose version
+DOCKER_COMPOSE_VERSION="v2.24.6"
+
+# Download Docker Compose using Terraform-safe variable escaping
+curl -SL "https://github.com/docker/compose/releases/download/$${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
   -o /usr/local/bin/docker-compose
+
+# Make it executable and available in PATH
 chmod +x /usr/local/bin/docker-compose
 ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
+
+# Verify installation
+docker-compose version || echo "⚠️ Docker Compose installation failed"
+
+echo "✅ Docker Compose installed successfully"
 
 ##########################################
 # Helper function for S3 copy with status
@@ -123,9 +143,9 @@ ls -ltr /opt/iot-simulator/app/
 cat > requirements.txt << 'REQ'
 paho-mqtt
 prometheus_client
-pyOpenSSL
-AWSIoTPythonSDK==1.5.0
-requests==2.31.0
+pyOpenSSL<24.0.0
+AWSIoTPythonSDK>=1.5.0,<2.0.0
+requests
 REQ
 
 ##########################################
@@ -150,7 +170,7 @@ DF
 ##########################################
 # docker-compose.yml
 ##########################################
-cat > docker-compose.yml << EOF
+cat > docker-compose.yml << 'EOF'
 version: "3.8"
 
 services:
@@ -167,7 +187,7 @@ services:
       - ./certs:/app/certs:ro
       - ./app:/app
     restart: always
-    command: ["python3", "app/iot-simulator.py"]
+    command: ["python3", "/app/iot-simulator.py"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9100/metrics"]
       interval: 30s
