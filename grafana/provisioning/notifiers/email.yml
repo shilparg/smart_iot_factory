@@ -1,8 +1,17 @@
+apiVersion: 1
 notifiers:
   - name: Email Alerts
     type: email
-    uid: email-notifier
+    uid: email-notifier # Must match contactPoint in alert rules
     org_id: 1
     is_default: true
     settings:
-      addresses: ${alert_email_recipients}
+      addresses: "srganatra15@gmail.com" # ${alert_email_recipients} eplace with your actual email
+      # Optional fields for SMTP
+      host: smtp.example.com:587
+      user: your_smtp_user
+      password: your_smtp_password
+      skip_verify: true
+      from_address: alerts@example.com
+      from_name: "IoT Simulator Alerts"
+      startTLS_policy: OpportunisticStartTLS

@@ -32,9 +32,9 @@ providers:
       path: /etc/grafana/provisioning/dashboards/latency
 
   # --- IoT Sim dashboards ---
-  - name: "latency"
+  - name: "iot-sim-dashboard"
     orgId: 1
-    folder: "Latency"
+    folder: "iot-sim"
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10

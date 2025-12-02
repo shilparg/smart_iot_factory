@@ -175,7 +175,6 @@ version: "3.8"
 
 services:
   iot-simulator:
-    container_name: iot-simulator
     build: .
     ports:
     - "9200:9100"
@@ -209,7 +208,6 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    container_name: iot-simulator-grafana-1
     ports:
       - "3000:3000"
     environment:
@@ -227,7 +225,7 @@ services:
       # alert_email_recipients=you@example.com,team@example.com
     volumes:
       # Main Grafana config
-      - ./config/grafana.ini:/etc/grafana/grafana.ini
+      - ./config/grafana.ini:/etc/grafana/provisioning/grafana.ini
 
       # Provisioned dashboards (requires dashboards.yml + anomalies.json)
       - ./config/dashboards:/etc/grafana/provisioning/dashboards
