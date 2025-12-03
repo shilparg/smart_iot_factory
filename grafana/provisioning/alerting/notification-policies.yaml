@@ -1,0 +1,11 @@
+# notification-policies.yaml
+---
+apiVersion: 1
+policies:
+  - orgId: 1
+    receiver: email-notifier
+    groupBy: ["alertname"]
+    matchers:
+      - ["severity", "=", "warning"]
+      - ["severity", "=", "critical"]
+    continue: false

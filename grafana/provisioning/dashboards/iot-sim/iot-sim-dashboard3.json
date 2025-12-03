@@ -4,12 +4,13 @@
   "tags": ["iot", "simulator", "system", "prometheus"],
   "timezone": "browser",
   "schemaVersion": 36,
-  "version": 1,
+  "version": 2,
   "refresh": "5s",
   "panels": [
     {
       "type": "timeseries",
       "title": "Machine Temperature (°C)",
+      "datasource": { "uid": "prometheus" },
       "targets": [
         {
           "expr": "machine_temperature",
@@ -22,6 +23,7 @@
     {
       "type": "timeseries",
       "title": "Machine Vibration (m/s²)",
+      "datasource": { "uid": "prometheus" },
       "targets": [
         {
           "expr": "machine_vibration",
@@ -34,6 +36,7 @@
     {
       "type": "timeseries",
       "title": "Machine RPM",
+      "datasource": { "uid": "prometheus" },
       "targets": [
         { "expr": "machine_rpm", "legendFormat": "{{device}}", "refId": "C" }
       ],
@@ -42,6 +45,7 @@
     {
       "type": "barchart",
       "title": "Anomaly Type Frequency (last 5m)",
+      "datasource": { "uid": "prometheus" },
       "targets": [
         {
           "expr": "count_over_time(anomaly_type_total[5m])",
@@ -54,6 +58,7 @@
     {
       "type": "timeseries",
       "title": "CPU Usage (%)",
+      "datasource": { "uid": "prometheus" },
       "targets": [
         {
           "expr": "100 - (avg by(instance)(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
@@ -66,6 +71,7 @@
     {
       "type": "timeseries",
       "title": "Memory Available (MB)",
+      "datasource": { "uid": "prometheus" },
       "targets": [
         {
           "expr": "node_memory_MemAvailable_bytes / 1024 / 1024",
@@ -78,6 +84,7 @@
     {
       "type": "timeseries",
       "title": "Disk Space Available (GB)",
+      "datasource": { "uid": "prometheus" },
       "targets": [
         {
           "expr": "node_filesystem_avail_bytes{fstype!=\"tmpfs\"} / 1024 / 1024 / 1024",
@@ -86,6 +93,12 @@
         }
       ],
       "gridPos": { "x": 0, "y": 30, "w": 24, "h": 8 }
+    },
+    {
+      "type": "alertlist",
+      "title": "Active Alerts",
+      "options": { "show": "current", "stateFilter": ["alerting", "pending"] },
+      "gridPos": { "x": 0, "y": 38, "w": 24, "h": 6 }
     }
   ]
 }

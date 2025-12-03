@@ -105,9 +105,34 @@ data "aws_iam_policy_document" "ec2_assume_role" {
   }
 }
 
+# Policy document for Secrets Manager access
+data "aws_iam_policy_document" "secretsmanager_access" {
+  statement {
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = ["arn:aws:secretsmanager:${var.region}:${data.aws_caller_identity.current.account_id}:secret:grafana/smtp-*"]
+    effect    = "Allow"
+  }
+}
+
+# Caller identity (needed for account_id interpolation)
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "ec2_role" {
   name               = "iot-sim-${var.environment}-ec2-role"
   assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
+}
+
+# Create IAM policy
+resource "aws_iam_policy" "secretsmanager_policy" {
+  name        = "iot-sim-${var.environment}-secretsmanager-policy"
+  description = "Allow EC2 Grafana host to read SMTP secrets"
+  policy      = data.aws_iam_policy_document.secretsmanager_access.json
+}
+
+# Attach policy to EC2 role
+resource "aws_iam_role_policy_attachment" "secretsmanager_attach" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.secretsmanager_policy.arn
 }
 
 # Attach Systems Manager core permissions
@@ -260,9 +285,9 @@ resource "aws_iot_thing_principal_attachment" "attach_cert" {
 ############################################
 resource "aws_s3_object" "prometheus_config" {
   bucket = local.config_bucket #$aws_s3_bucket.config_bucket.bucket
-  key    = "prometheus/prometheus.yml"
-  source = "${path.module}/prometheus/prometheus.yml"
-  etag   = filemd5("${path.module}/prometheus/prometheus.yml")
+  key    = "prometheus/prometheus.yaml"
+  source = "${path.module}/prometheus/prometheus.yaml"
+  etag   = filemd5("${path.module}/prometheus/prometheus.yaml")
 }
 
 resource "aws_s3_object" "grafana_ini" {
@@ -274,9 +299,9 @@ resource "aws_s3_object" "grafana_ini" {
 
 resource "aws_s3_object" "grafana_dashboards_config" {
   bucket = local.config_bucket #aws_s3_bucket.config_bucket.bucket
-  key    = "grafana/provisioning/dashboards/dashboards.yml"
-  source = "${path.module}/grafana/provisioning/dashboards/dashboards.yml"
-  etag   = filemd5("${path.module}/grafana/provisioning/dashboards/dashboards.yml")
+  key    = "grafana/provisioning/dashboards/dashboards.yaml"
+  source = "${path.module}/grafana/provisioning/dashboards/dashboards.yaml"
+  etag   = filemd5("${path.module}/grafana/provisioning/dashboards/dashboards.yaml")
 }
 
 locals {
@@ -285,6 +310,7 @@ locals {
     "system-health/system-health.json" = "grafana/provisioning/dashboards/system-health/system-health.json"
     "latency/latency.json"             = "grafana/provisioning/dashboards/latency/latency.json"
     "iot-sim/iot-sim-dashboard3.json"  = "grafana/provisioning/dashboards/iot-sim/iot-sim-dashboard3.json"
+    "executive-overview/executive-overview.json"  = "grafana/provisioning/dashboards/executive-overview/executive-overview.json"
   }
 }
 
@@ -298,16 +324,23 @@ resource "aws_s3_object" "grafana_dashboards" {
 
 resource "aws_s3_object" "grafana_notifier_email" {
   bucket = local.config_bucket #aws_s3_bucket.config_bucket.bucket
-  key    = "grafana/provisioning/notifiers/email.yml"
-  source = "${path.module}/grafana/provisioning/notifiers/email.yml"
-  etag   = filemd5("${path.module}/grafana/provisioning/notifiers/email.yml")
+  key    = "grafana/provisioning/notifiers/contact-points.yaml"
+  source = "${path.module}/grafana/provisioning/notifiers/contact-points.yaml"
+  etag   = filemd5("${path.module}/grafana/provisioning/notifiers/contact-points.yaml")
 }
 
 resource "aws_s3_object" "grafana_alerting_anomaly_alerts" {
   bucket = local.config_bucket #aws_s3_bucket.config_bucket.bucket
-  key    = "grafana/provisioning/alerting/anomaly-alerts.yml"
-  source = "${path.module}/grafana/provisioning/alerting/anomaly-alerts.yml"
-  etag   = filemd5("${path.module}/grafana/provisioning/alerting/anomaly-alerts.yml")
+  key    = "grafana/provisioning/alerting/anomaly-alerts.yaml"
+  source = "${path.module}/grafana/provisioning/alerting/anomaly-alerts.yaml"
+  etag   = filemd5("${path.module}/grafana/provisioning/alerting/anomaly-alerts.yaml")
+}
+
+resource "aws_s3_object" "grafana_alerting_notify_policies" {
+  bucket = local.config_bucket #aws_s3_bucket.config_bucket.bucket
+  key    = "grafana/provisioning/alerting/notification-policies.yaml"
+  source = "${path.module}/grafana/provisioning/alerting/notification-policies.yaml"
+  etag   = filemd5("${path.module}/grafana/provisioning/alerting/notification-policies.yaml")
 }
 
 resource "aws_s3_object" "iot_simulator_script" {

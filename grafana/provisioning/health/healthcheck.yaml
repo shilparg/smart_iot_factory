@@ -1,0 +1,10 @@
+apiVersion: 1
+health:
+  name: grafana-healthcheck
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  command:
+    - curl
+    - --fail
+    - http://localhost:3000/api/health

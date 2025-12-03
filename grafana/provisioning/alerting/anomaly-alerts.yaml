@@ -6,7 +6,7 @@ groups:
     rules:
       - uid: anomaly-ratio-high
         title: "High Anomaly Ratio"
-        condition: "A > 20"
+        condition: A
         data:
           - refId: A
             datasourceUid: prometheus
@@ -16,19 +16,28 @@ groups:
               instant: false
               intervalMs: 15000
               relativeTimeRange:
-                from: 5m
-                to: 0s
+                from: 300 # 5m in seconds
+                to: 0
         for: 2m
         annotations:
           summary: "Anomaly ratio exceeded 20%"
         labels:
           severity: warning
-        notifications:
-          - uid: email-notifier
+        conditions:
+          - evaluator:
+              type: gt
+              params: [20]
+            operator:
+              type: and
+            query:
+              refId: A
+            reducer:
+              type: last
+            type: query
 
       - uid: spike-severity-critical
         title: "Critical Temperature Spike"
-        condition: "A > 25"
+        condition: A
         data:
           - refId: A
             datasourceUid: prometheus
@@ -38,12 +47,21 @@ groups:
               instant: false
               intervalMs: 15000
               relativeTimeRange:
-                from: 5m
-                to: 0s
+                from: 300 # 5m in seconds
+                to: 0
         for: 1m
         annotations:
           summary: "95th percentile spike > 25°C"
         labels:
           severity: critical
-        notifications:
-          - uid: email-notifier
+        conditions:
+          - evaluator:
+              type: gt
+              params: [25]
+            operator:
+              type: and
+            query:
+              refId: A
+            reducer:
+              type: last
+            type: query

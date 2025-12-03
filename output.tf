@@ -82,5 +82,13 @@ output "certs" {
   value       = [for obj in aws_s3_object.certs : obj.key]
 }
 
+output "ec2_role_name" {
+  value = aws_iam_role.ec2_role.name
+}
+output "secretsmanager_policy_arn" {
+  value = aws_iam_policy.secretsmanager_policy.arn
+}
+
+
 
 #output "iot_endpoint" { value = aws_iot_certificate.sim_cert.id } # can replace with actual endpoint if needed

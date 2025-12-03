@@ -78,38 +78,6 @@ docker-compose version || echo "⚠️ Docker Compose installation failed"
 echo "✅ Docker Compose installed successfully"
 
 ##########################################
-# Inject Grafana SMTP secrets from AWS Secrets Manager
-##########################################
-echo "Fetching Grafana SMTP secrets from AWS Secrets Manager..."
-
-GRAFANA_SECRET_NAME="grafana/smtp"
-GRAFANA_SECRET_JSON=$(aws secretsmanager get-secret-value \
-  --secret-id "$GRAFANA_SECRET_NAME" \
-  --region "$REGION" \
-  --query SecretString \
-  --output text)
-
-export GF_SMTP_HOST=$(echo "$GRAFANA_SECRET_JSON" | jq -r .SMTP_HOST)
-export GF_SMTP_USER=$(echo "$GRAFANA_SECRET_JSON" | jq -r .SMTP_USER)
-export GF_SMTP_PASSWORD=$(echo "$GRAFANA_SECRET_JSON" | jq -r .SMTP_PASSWORD)
-export GF_SMTP_FROM_ADDRESS=$(echo "$GRAFANA_SECRET_JSON" | jq -r .SMTP_FROM)
-export GF_SMTP_FROM_NAME=$(echo "$GRAFANA_SECRET_JSON" | jq -r .SMTP_NAME)
-
-# Create Grafana SMTP env file for Docker Compose
-cat <<EOF > /opt/iot-simulator/config/grafana-smtp.env
-GF_SMTP_ENABLED=true
-GF_SMTP_HOST=$GF_SMTP_HOST
-GF_SMTP_USER=$GF_SMTP_USER
-GF_SMTP_PASSWORD=$GF_SMTP_PASSWORD
-GF_SMTP_SKIP_VERIFY=true
-GF_SMTP_FROM_ADDRESS=$GF_SMTP_FROM_ADDRESS
-GF_SMTP_FROM_NAME="$GF_SMTP_FROM_NAME"
-GF_SMTP_STARTTLS_POLICY=OpportunisticStartTLS
-EOF
-
-echo "✅ Grafana SMTP secrets injected"
-
-##########################################
 # Helper function for S3 copy with status
 ##########################################
 s3_copy_file() {
@@ -272,14 +240,12 @@ services:
 
       # Notifiers (e.g. email)
       - ./config/notifiers:/etc/grafana/provisioning/notifiers
-    restart: always
+        restart: always
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-    env_file:
-      - ./config/grafana-smtp.env
 EOF
 
 ##########################################

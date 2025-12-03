@@ -34,9 +34,19 @@ providers:
   # --- IoT Sim dashboards ---
   - name: "iot-sim-dashboard"
     orgId: 1
-    folder: "iot-sim"
+    folder: "IoT Sim"
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10
     options:
       path: /etc/grafana/provisioning/dashboards/iot-sim
+
+  # --- Executive Overview dashboard ---
+  - name: "executive-overview"
+    orgId: 1
+    folder: "Executive Overview"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /etc/grafana/provisioning/dashboards/executive-overview

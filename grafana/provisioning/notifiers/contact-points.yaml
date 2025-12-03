@@ -1,0 +1,18 @@
+# contact-points.yaml
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: email-notifier
+    receivers:
+      - uid: email-notifier
+        type: email
+        settings:
+          addresses: "shilpakangya2025@gmail.com"
+          singleEmail: true
+          host: smtp.gmail.com:587
+          user: your_smtp_user
+          password: your_smtp_password
+          skip_verify: true
+          from_address: alerts@example.com
+          from_name: "IoT Simulator Alerts"
+          startTLS_policy: OpportunisticStartTLS
