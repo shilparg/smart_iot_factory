@@ -331,9 +331,9 @@ resource "aws_s3_object" "grafana_notifier_email" {
 
 resource "aws_s3_object" "grafana_alerting_anomaly_alerts" {
   bucket = local.config_bucket #aws_s3_bucket.config_bucket.bucket
-  key    = "grafana/provisioning/alerting/anomaly-alerts.yaml"
-  source = "${path.module}/grafana/provisioning/alerting/anomaly-alerts.yaml"
-  etag   = filemd5("${path.module}/grafana/provisioning/alerting/anomaly-alerts.yaml")
+  key    = "grafana/provisioning/alerting/rules/anomaly-alerts.yaml"
+  source = "${path.module}/grafana/provisioning/alerting/rules/anomaly-alerts.yaml"
+  etag   = filemd5("${path.module}/grafana/provisioning/alerting/rules/anomaly-alerts.yaml")
 }
 
 resource "aws_s3_object" "grafana_alerting_notify_policies" {

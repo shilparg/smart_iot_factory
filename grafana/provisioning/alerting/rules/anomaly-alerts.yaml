@@ -1,3 +1,5 @@
+#anomaly-alerts.yaml
+---
 apiVersion: 1
 groups:
   - name: anomaly-alerts
@@ -11,7 +13,9 @@ groups:
           - refId: A
             datasourceUid: prometheus
             model:
-              expr: (rate(anomaly_type_total[5m]) / rate(events_total[5m])) * 100
+              expr: >
+                (rate(anomaly_type_total[5m]) /
+                rate(events_total[5m])) * 100
               format: time_series
               instant: false
               intervalMs: 15000
@@ -42,7 +46,8 @@ groups:
           - refId: A
             datasourceUid: prometheus
             model:
-              expr: histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))
+              expr: >
+                histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))
               format: time_series
               instant: false
               intervalMs: 15000

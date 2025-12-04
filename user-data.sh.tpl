@@ -158,7 +158,7 @@ s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/system-he
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/notifiers/contact-points.yaml" "/opt/iot-simulator/config/notifiers/contact-points.yaml"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/executive-overview/executive-overview.json" "/opt/iot-simulator/config/dashboards/executive-overview/executive-overview.json"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/dashboards.yaml" "/opt/iot-simulator/config/dashboards/dashboards.yaml"
-s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/alerting/anomaly-alerts.yaml" "/opt/iot-simulator/config/alerting/anomaly-alerts.yaml"
+s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/alerting/rules/anomaly-alerts.yaml" "/opt/iot-simulator/config/alerting/rules/anomaly-alerts.yaml"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/alerting/notification-policies.yaml" "/opt/iot-simulator/config/alerting/notification-policies.yaml"
 
 echo "Listing downloaded Grafana files:"
@@ -247,39 +247,30 @@ services:
     container_name: iot-simulator-grafana-1
     ports:
       - "3000:3000"
+    env_file:
+      - ./config/grafana-smtp.env
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
-      # --- Email alerting variables (optional, can be enabled later) ---
-      # GF_SMTP_ENABLED=true
-      # GF_SMTP_HOST=smtp.example.com:587
-      # GF_SMTP_USER= $${smtp_user}
-      # GF_SMTP_PASSWORD= $${smtp_password}
-      # GF_SMTP_SKIP_VERIFY=true
-      # GF_SMTP_FROM_ADDRESS=alerts@example.com
-      # GF_SMTP_FROM_NAME=IoT Simulator Alerts
-      # GF_SMTP_STARTTLS_POLICY=OpportunisticStartTLS
-      # alert_email_recipients=you@example.com,team@example.com
     volumes:
       # Main Grafana config
       - ./config/grafana.ini:/etc/grafana/grafana.ini
 
-      # Provisioned dashboards (requires dashboards.yaml + anomalies.json)
+      # Provisioned dashboards
       - ./config/dashboards:/etc/grafana/provisioning/dashboards
 
       # Alerting rules
       - ./config/alerting:/etc/grafana/provisioning/alerting
 
-      # Notifiers (e.g. email)
+      # Notifiers
       - ./config/notifiers:/etc/grafana/provisioning/notifiers
+
     restart: always
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-    env_file:
-      - ./config/grafana-smtp.env
 EOF
 
 ##########################################
