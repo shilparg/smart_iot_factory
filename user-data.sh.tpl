@@ -150,7 +150,7 @@ done
 ##########################################
 # Download Config Files
 ##########################################
-s3_copy_file "s3://${config_s3_bucket}/prometheus/prometheus.yaml" "/opt/iot-simulator/config/prometheus.yaml"
+s3_copy_file "s3://${config_s3_bucket}/prometheus/prometheus.yml" "/opt/iot-simulator/config/prometheus.yml"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/grafana.ini" "/opt/iot-simulator/config/grafana.ini"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/anomalies/anomalies.json" "/opt/iot-simulator/config/dashboards/anomalies/anomalies.json"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/iot-sim/iot-sim-dashboard3.json" "/opt/iot-simulator/config/dashboards/iot-sim/iot-sim-dashboard3.json"
@@ -160,7 +160,8 @@ s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/notifiers/contact-po
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/executive-overview/executive-overview.json" "/opt/iot-simulator/config/dashboards/executive-overview/executive-overview.json"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/dashboards.yaml" "/opt/iot-simulator/config/dashboards/dashboards.yaml"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/alerting/anomaly-alerts.yaml" "/opt/iot-simulator/config/alerting/anomaly-alerts.yaml"
-s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/alerting/notification-policies.yaml" "/opt/iot-simulator/config/alerting/notification-policies.yaml"
+s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/alerting/notification-policies.yaml" "/opt/iot-simulator/config/alerting/notification-policies.yaml.disabled"
+s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/alerting/mute-timings.yaml" "/opt/iot-simulator/config/alerting/mute-timings.yaml"
 s3_copy_file "s3://${config_s3_bucket}/datasources/datasources.yaml" "/opt/iot-simulator/config/datasources/datasources.yaml"
 
 echo "Listing downloaded Grafana files:"
@@ -193,7 +194,10 @@ FROM python:3.11-slim
 WORKDIR /app
 
 COPY requirements.txt ./ 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 #COPY certs ./certs
@@ -240,7 +244,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
 

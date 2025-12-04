@@ -1,5 +1,4 @@
 # contact-points.yaml
----
 apiVersion: 1
 
 contactPoints:
@@ -8,5 +7,7 @@ contactPoints:
     receivers:
       - uid: email1
         type: email
+        disableResolveMessage: false
         settings:
           addresses: ${SMTP_USER}
+          singleEmail: false

@@ -6,6 +6,7 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
-    uid: prometheus # must match datasourceUid in your alert rules
-    url: http://prometheus:9090
+    uid: prometheus
+    url: http://iot-simulator-prometheus-1:9090
     isDefault: true
+    editable: false

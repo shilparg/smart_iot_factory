@@ -1,0 +1,62 @@
+# mute-timings.yaml
+---
+apiVersion: 1
+
+muteTimes:
+  # 1. Night hours every day (e.g. 22:00–06:00)
+  - name: night-hours
+    time_intervals:
+      # 22:00–24:00
+      - times:
+          - start_time: "22:00"
+            end_time: "24:00"
+      # 00:00–06:00
+      - times:
+          - start_time: "00:00"
+            end_time: "06:00"
+
+  # 2. Weekend (all day Saturday & Sunday)
+  - name: weekend
+    time_intervals:
+      - weekdays: ["saturday", "sunday"]
+        times:
+          - start_time: "00:00"
+            end_time: "24:00"
+
+  # 3. Specific weekdays at specific times
+  #    Example: every Monday and Wednesday, 09:00–12:00
+  - name: mon-wed-morning-maintenance
+    time_intervals:
+      - weekdays: ["monday", "wednesday"]
+        times:
+          - start_time: "09:00"
+            end_time: "12:00"
+
+  # 4. Specific days of month (e.g. 1st of each month, 01:00–03:00)
+  - name: first-day-of-month
+    time_intervals:
+      - days_of_month: [1]
+        times:
+          - start_time: "01:00"
+            end_time: "03:00"
+
+  # 5. Specific date window (e.g. December 25th, all day)
+  #    Approximation using month + day-of-month:
+  - name: christmas-day
+    time_intervals:
+      - months: ["december"]
+        days_of_month: [25]
+        times:
+          - start_time: "00:00"
+            end_time: "24:00"
+
+  # 6. A one-off year-specific date (e.g. 2025-12-31, 20:00–23:59)
+  #    Use years + months + days_of_month:
+  - name: new-year-2025-eve-window
+    time_intervals:
+      - years: [2025]
+        months: ["december"]
+        days_of_month: [31]
+        times:
+          - start_time: "20:00"
+            end_time: "24:00"

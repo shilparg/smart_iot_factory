@@ -285,9 +285,9 @@ resource "aws_iot_thing_principal_attachment" "attach_cert" {
 ############################################
 resource "aws_s3_object" "prometheus_config" {
   bucket = local.config_bucket #$aws_s3_bucket.config_bucket.bucket
-  key    = "prometheus/prometheus.yaml"
-  source = "${path.module}/prometheus/prometheus.yaml"
-  etag   = filemd5("${path.module}/prometheus/prometheus.yaml")
+  key    = "prometheus/prometheus.yml"
+  source = "${path.module}/prometheus/prometheus.yml"
+  etag   = filemd5("${path.module}/prometheus/prometheus.yml")
 }
 
 resource "aws_s3_object" "grafana_ini" {
@@ -341,6 +341,13 @@ resource "aws_s3_object" "grafana_alerting_notify_policies" {
   key    = "grafana/provisioning/alerting/notification-policies.yaml"
   source = "${path.module}/grafana/provisioning/alerting/notification-policies.yaml"
   etag   = filemd5("${path.module}/grafana/provisioning/alerting/notification-policies.yaml")
+}
+
+resource "aws_s3_object" "grafana_alerting_mute_timings" {
+  bucket = local.config_bucket #aws_s3_bucket.config_bucket.bucket
+  key    = "grafana/provisioning/alerting/mute-timings.yaml"
+  source = "${path.module}/grafana/provisioning/alerting/mute-timings.yaml"
+  etag   = filemd5("${path.module}/grafana/provisioning/alerting/mute-timings.yaml")
 }
 
 resource "aws_s3_object" "grafana_datasources" {
