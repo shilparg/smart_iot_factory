@@ -1,0 +1,20 @@
+# notification-policies.yaml
+apiVersion: 1
+
+policies:
+  - orgId: 1
+    receiver: email-notifier
+    group_by: ["alertname"]
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+    routes:
+      - orgId: 1
+        receiver: email-notifier
+        matchers:
+          - severity="warning"
+
+      - orgId: 1
+        receiver: email-notifier
+        matchers:
+          - severity="critical"

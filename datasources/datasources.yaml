@@ -1,0 +1,11 @@
+# datasources.yaml
+---
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    uid: prometheus # must match datasourceUid in your alert rules
+    url: http://prometheus:9090
+    isDefault: true

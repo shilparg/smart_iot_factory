@@ -1,6 +1,7 @@
-#anomaly-alerts.yaml
+# anomaly-alerts.yaml
 ---
 apiVersion: 1
+
 groups:
   - name: anomaly-alerts
     folder: "Anomaly Alerts"
@@ -11,7 +12,10 @@ groups:
         condition: A
         data:
           - refId: A
-            datasourceUid: prometheus
+            datasourceUid: prometheus          # must match your datasource uid
+            relativeTimeRange:                 # look back 5 minutes
+              from: 300                        # seconds (5m)
+              to: 0
             model:
               expr: >
                 (rate(anomaly_type_total[5m]) /
@@ -19,9 +23,6 @@ groups:
               format: time_series
               instant: false
               intervalMs: 15000
-              relativeTimeRange:
-                from: 300 # 5m in seconds
-                to: 0
         for: 2m
         annotations:
           summary: "Anomaly ratio exceeded 20%"
@@ -30,7 +31,7 @@ groups:
         conditions:
           - evaluator:
               type: gt
-              params: [20]
+              params: [20]                     # > 20%
             operator:
               type: and
             query:
@@ -44,16 +45,16 @@ groups:
         condition: A
         data:
           - refId: A
-            datasourceUid: prometheus
+            datasourceUid: prometheus          # same uid
+            relativeTimeRange:                 # look back 5 minutes
+              from: 300
+              to: 0
             model:
               expr: >
                 histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))
               format: time_series
               instant: false
               intervalMs: 15000
-              relativeTimeRange:
-                from: 300 # 5m in seconds
-                to: 0
         for: 1m
         annotations:
           summary: "95th percentile spike > 25°C"
@@ -62,7 +63,7 @@ groups:
         conditions:
           - evaluator:
               type: gt
-              params: [25]
+              params: [25]                     # > 25°C
             operator:
               type: and
             query:

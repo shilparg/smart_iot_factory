@@ -331,9 +331,9 @@ resource "aws_s3_object" "grafana_notifier_email" {
 
 resource "aws_s3_object" "grafana_alerting_anomaly_alerts" {
   bucket = local.config_bucket #aws_s3_bucket.config_bucket.bucket
-  key    = "grafana/provisioning/alerting/rules/anomaly-alerts.yaml"
-  source = "${path.module}/grafana/provisioning/alerting/rules/anomaly-alerts.yaml"
-  etag   = filemd5("${path.module}/grafana/provisioning/alerting/rules/anomaly-alerts.yaml")
+  key    = "grafana/provisioning/alerting/anomaly-alerts.yaml"
+  source = "${path.module}/grafana/provisioning/alerting/anomaly-alerts.yaml"
+  etag   = filemd5("${path.module}/grafana/provisioning/alerting/anomaly-alerts.yaml")
 }
 
 resource "aws_s3_object" "grafana_alerting_notify_policies" {
@@ -341,6 +341,13 @@ resource "aws_s3_object" "grafana_alerting_notify_policies" {
   key    = "grafana/provisioning/alerting/notification-policies.yaml"
   source = "${path.module}/grafana/provisioning/alerting/notification-policies.yaml"
   etag   = filemd5("${path.module}/grafana/provisioning/alerting/notification-policies.yaml")
+}
+
+resource "aws_s3_object" "grafana_datasources" {
+  bucket = local.config_bucket #aws_s3_bucket.config_bucket.bucket
+  key    = "datasources/datasources.yaml"
+  source = "${path.module}/datasources/datasources.yaml"
+  etag   = filemd5("${path.module}/datasources/datasources.yaml")
 }
 
 resource "aws_s3_object" "iot_simulator_script" {

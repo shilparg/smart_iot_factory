@@ -35,6 +35,7 @@ mkdir -p /opt/iot-simulator/config/dashboards/system-health
 mkdir -p /opt/iot-simulator/config/dashboards/executive-overview
 mkdir -p /opt/iot-simulator/config/alerting
 mkdir -p /opt/iot-simulator/config/notifiers
+mkdir -p /opt/iot-simulator/config/datasources
 cd /opt/iot-simulator
 echo "Directory structure created:"
 ls -R /opt/iot-simulator
@@ -158,8 +159,9 @@ s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/system-he
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/notifiers/contact-points.yaml" "/opt/iot-simulator/config/notifiers/contact-points.yaml"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/executive-overview/executive-overview.json" "/opt/iot-simulator/config/dashboards/executive-overview/executive-overview.json"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/dashboards/dashboards.yaml" "/opt/iot-simulator/config/dashboards/dashboards.yaml"
-s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/alerting/rules/anomaly-alerts.yaml" "/opt/iot-simulator/config/alerting/rules/anomaly-alerts.yaml"
+s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/alerting/anomaly-alerts.yaml" "/opt/iot-simulator/config/alerting/anomaly-alerts.yaml"
 s3_copy_file "s3://${config_s3_bucket}/grafana/provisioning/alerting/notification-policies.yaml" "/opt/iot-simulator/config/alerting/notification-policies.yaml"
+s3_copy_file "s3://${config_s3_bucket}/datasources/datasources.yaml" "/opt/iot-simulator/config/datasources/datasources.yaml"
 
 echo "Listing downloaded Grafana files:"
 ls -R /opt/iot-simulator/config/
@@ -265,6 +267,9 @@ services:
       # Notifiers
       - ./config/notifiers:/etc/grafana/provisioning/notifiers
 
+      # Data Sources
+      - ./config/datasources:/etc/grafana/provisioning/datasources
+
     restart: always
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
@@ -289,6 +294,7 @@ chmod 644 /opt/iot-simulator/config/dashboards/**/*.json
 chmod 644 /opt/iot-simulator/config/dashboards/*.yaml
 chmod 644 /opt/iot-simulator/config/alerting/*.yaml
 chmod 644 /opt/iot-simulator/config/notifiers/*.yaml
+chmod 644 /opt/iot-simulator/config/datasources/*.yaml
 
 # IoT simulator app script: executable
 chmod 755 /opt/iot-simulator/app/iot-simulator.py
