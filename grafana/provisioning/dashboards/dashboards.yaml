@@ -6,18 +6,20 @@ providers:
     orgId: 1
     folder: "Anomalies"
     type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
+    editable: false
+    disableDeletion: true
+    updateIntervalSeconds: 30
     options:
       path: /etc/grafana/provisioning/dashboards/anomalies
 
-  # --- System health dashboards ---
+  # --- System Health dashboards ---
   - name: "system-health"
     orgId: 1
     folder: "System Health"
     type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
+    editable: false
+    disableDeletion: true
+    updateIntervalSeconds: 30
     options:
       path: /etc/grafana/provisioning/dashboards/system-health
 
@@ -26,18 +28,20 @@ providers:
     orgId: 1
     folder: "Latency"
     type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
+    editable: false
+    disableDeletion: true
+    updateIntervalSeconds: 30
     options:
       path: /etc/grafana/provisioning/dashboards/latency
 
   # --- IoT Sim dashboards ---
-  - name: "iot-sim-dashboard"
+  - name: "iot-sim"
     orgId: 1
     folder: "IoT Sim"
     type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
+    editable: false
+    disableDeletion: true
+    updateIntervalSeconds: 30
     options:
       path: /etc/grafana/provisioning/dashboards/iot-sim
 
@@ -46,7 +50,8 @@ providers:
     orgId: 1
     folder: "Executive Overview"
     type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
+    editable: false
+    disableDeletion: true
+    updateIntervalSeconds: 30
     options:
       path: /etc/grafana/provisioning/dashboards/executive-overview

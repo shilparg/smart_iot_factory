@@ -292,7 +292,7 @@ chmod 600 /opt/iot-simulator/certs/*
 chown ec2-user:ec2-user /opt/iot-simulator/certs/*
 
 # Config files: world-readable so Grafana/Prometheus can access
-chmod 644 /opt/iot-simulator/config/*.yaml
+chmod 644 /opt/iot-simulator/config/*.yml
 chmod 644 /opt/iot-simulator/config/*.ini
 chmod 644 /opt/iot-simulator/config/dashboards/**/*.json
 chmod 644 /opt/iot-simulator/config/dashboards/*.yaml

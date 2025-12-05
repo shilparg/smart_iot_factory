@@ -1,54 +1,51 @@
 {
-  "dashboard": {
-    "title": "IoT Simulator Anomalies",
-    "schemaVersion": 36,
-    "version": 2,
-    "refresh": "10s",
-    "panels": [
-      {
-        "type": "timeseries",
-        "title": "Anomaly Frequency by Type",
-        "datasource": { "uid": "prometheus" },
-        "targets": [
-          { "expr": "rate(anomaly_type_total[5m])", "legendFormat": "{{type}}" }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Anomaly Ratio (%)",
-        "datasource": { "uid": "prometheus" },
-        "targets": [
-          {
-            "expr": "(rate(anomaly_type_total[5m]) / rate(events_total[5m])) * 100",
-            "legendFormat": "Anomaly Ratio"
-          }
-        ]
-      },
-      {
-        "type": "bargauge",
-        "title": "Anomaly Severity Breakdown",
-        "datasource": { "uid": "prometheus" },
-        "targets": [
-          { "expr": "anomaly_severity_total", "legendFormat": "{{level}}" }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Temperature Spike Distribution",
-        "datasource": { "uid": "prometheus" },
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))",
-            "legendFormat": "95th percentile spike"
-          }
-        ]
-      },
-      {
-        "type": "alertlist",
-        "title": "Active Alerts",
-        "options": { "show": "current", "stateFilter": ["alerting", "pending"] }
-      }
-    ]
-  },
-  "overwrite": true
+  "title": "IoT Simulator Anomalies",
+  "schemaVersion": 36,
+  "version": 2,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Anomaly Frequency by Type",
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(anomaly_type_total[5m])", "legendFormat": "{{type}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Anomaly Ratio (%)",
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "(rate(anomaly_type_total[5m]) / rate(events_total[5m])) * 100",
+          "legendFormat": "Anomaly Ratio"
+        }
+      ]
+    },
+    {
+      "type": "bargauge",
+      "title": "Anomaly Severity Breakdown",
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "anomaly_severity_total", "legendFormat": "{{level}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Temperature Spike Distribution",
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))",
+          "legendFormat": "95th percentile spike"
+        }
+      ]
+    },
+    {
+      "type": "alertlist",
+      "title": "Active Alerts",
+      "options": { "show": "current", "stateFilter": ["alerting", "pending"] }
+    }
+  ]
 }
