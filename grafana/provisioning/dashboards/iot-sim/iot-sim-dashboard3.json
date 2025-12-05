@@ -1,17 +1,17 @@
 {
-  "id": null,
-  "uid": "iot-sim-system-health",
   "title": "IoT Simulator + System Health",
-  "tags": ["iot", "simulator", "system", "prometheus"],
-  "timezone": "browser",
+  "uid": "iot-sim-system-health",
   "schemaVersion": 36,
   "version": 4,
   "refresh": "5s",
+  "timezone": "browser",
   "panels": [
     {
       "type": "timeseries",
-      "title": "Machine Temperature (°C)",
-      "datasource": { "uid": "prometheus" },
+      "title": "Machine Temperature (\u00b0C)",
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "celsius"
@@ -20,17 +20,24 @@
       },
       "targets": [
         {
+          "refId": "A",
           "expr": "machine_temperature_c",
-          "legendFormat": "{{device}}",
-          "refId": "A"
+          "legendFormat": "{{device}}"
         }
       ],
-      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "timeseries",
-      "title": "Machine Vibration (m/s²)",
-      "datasource": { "uid": "prometheus" },
+      "title": "Machine Vibration (m/s\u00b2)",
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "none"
@@ -39,17 +46,24 @@
       },
       "targets": [
         {
+          "refId": "B",
           "expr": "machine_vibration_ms2",
-          "legendFormat": "{{device}}",
-          "refId": "B"
+          "legendFormat": "{{device}}"
         }
       ],
-      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "timeseries",
       "title": "Machine RPM",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "none"
@@ -58,17 +72,24 @@
       },
       "targets": [
         {
+          "refId": "C",
           "expr": "machine_rpm",
-          "legendFormat": "{{device}}",
-          "refId": "C"
+          "legendFormat": "{{device}}"
         }
       ],
-      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "timeseries",
       "title": "Machine Power (kW)",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "kwatt"
@@ -77,12 +98,17 @@
       },
       "targets": [
         {
+          "refId": "H",
           "expr": "machine_power_kw",
-          "legendFormat": "{{device}}",
-          "refId": "H"
+          "legendFormat": "{{device}}"
         }
       ],
-      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "barchart",
@@ -101,12 +127,19 @@
           "refId": "D"
         }
       ],
-      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 6 }
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 6
+      }
     },
     {
       "type": "timeseries",
       "title": "CPU Usage (%)",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -117,17 +150,24 @@
       },
       "targets": [
         {
+          "refId": "E",
           "expr": "100 - (avg by(instance)(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
-          "legendFormat": "CPU Usage",
-          "refId": "E"
+          "legendFormat": "CPU Usage"
         }
       ],
-      "gridPos": { "x": 0, "y": 22, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "timeseries",
       "title": "Memory Available (MB)",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "mebibytes"
@@ -136,17 +176,24 @@
       },
       "targets": [
         {
+          "refId": "F",
           "expr": "node_memory_MemAvailable_bytes / 1024 / 1024",
-          "legendFormat": "Available Memory",
-          "refId": "F"
+          "legendFormat": "Available Memory"
         }
       ],
-      "gridPos": { "x": 12, "y": 22, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "timeseries",
       "title": "Disk Space Available (GB)",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "gbytes"
@@ -155,21 +202,34 @@
       },
       "targets": [
         {
+          "refId": "G",
           "expr": "node_filesystem_avail_bytes{fstype!=\"tmpfs\"} / 1024 / 1024 / 1024",
-          "legendFormat": "{{mountpoint}}",
-          "refId": "G"
+          "legendFormat": "{{mountpoint}}"
         }
       ],
-      "gridPos": { "x": 0, "y": 30, "w": 24, "h": 8 }
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 8
+      }
     },
     {
       "type": "alertlist",
       "title": "Active Alerts",
       "options": {
         "show": "current",
-        "stateFilter": ["alerting", "pending"]
+        "stateFilter": [
+          "alerting",
+          "pending"
+        ]
       },
-      "gridPos": { "x": 0, "y": 38, "w": 24, "h": 6 }
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 6
+      }
     }
   ]
 }

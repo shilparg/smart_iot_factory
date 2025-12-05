@@ -9,7 +9,9 @@
     {
       "type": "timeseries",
       "title": "Anomaly Frequency by Type (events/s, global)",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short"
@@ -23,12 +25,19 @@
           "legendFormat": "{{type}}"
         }
       ],
-      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "timeseries",
       "title": "Anomaly Frequency by Device & Type (events/s)",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short"
@@ -42,12 +51,19 @@
           "legendFormat": "{{device}} - {{type}}"
         }
       ],
-      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "timeseries",
       "title": "Global Anomaly Ratio (%)",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -63,12 +79,19 @@
           "legendFormat": "Global anomaly ratio"
         }
       ],
-      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "timeseries",
       "title": "Per-Device Anomaly Ratio (%)",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -84,12 +107,19 @@
           "legendFormat": "{{device}} anomaly ratio"
         }
       ],
-      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "bargauge",
       "title": "Anomaly Severity (last 5m, global by level)",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short"
@@ -107,12 +137,19 @@
           "legendFormat": "{{level}}"
         }
       ],
-      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "barchart",
       "title": "Anomaly Severity by Device (last 5m)",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short"
@@ -132,12 +169,19 @@
           "legendFormat": "{{device}} - {{level}}"
         }
       ],
-      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "timeseries",
-      "title": "Temperature Spike p95 (°C, per device, last 5m)",
-      "datasource": { "uid": "prometheus" },
+      "title": "Temperature Spike p95 (\u00b0C, per device, last 5m)",
+      "datasource": {
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "celsius"
@@ -151,16 +195,29 @@
           "legendFormat": "p95 spike {{device}}"
         }
       ],
-      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 8 }
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 8
+      }
     },
     {
       "type": "alertlist",
       "title": "Active Alerts",
       "options": {
         "show": "current",
-        "stateFilter": ["alerting", "pending"]
+        "stateFilter": [
+          "alerting",
+          "pending"
+        ]
       },
-      "gridPos": { "x": 0, "y": 32, "w": 24, "h": 6 }
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 6
+      }
     }
   ]
 }

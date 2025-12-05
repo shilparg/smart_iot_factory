@@ -10,6 +10,21 @@ Features:
  - Multi-device simulation via threads
  - Structured JSON logging for easy ingestion
 
+  Gauges:
+    machine_temperature_c{device}
+    machine_vibration_ms2{device}
+    machine_rpm{device}
+    machine_power_kw{device}
+    machine_heartbeat{device}
+
+  Counters:
+    events_total{device}
+    anomaly_type_total{device,type}
+    anomaly_severity_total{device,level}
+
+  Histogram:
+    temperature_spike_c_bucket{device,le}
+
 Environment variables:
  - AWS_ENDPOINT         : AWS IoT endpoint (required)
  - SIMULATOR_COUNT      : number of virtual devices (default: 2)

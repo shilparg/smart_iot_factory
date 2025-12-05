@@ -1,60 +1,94 @@
 {
-  "id": null,
-  "uid": "system-health",
   "title": "System Health Overview",
-  "tags": ["system", "health"],
-  "timezone": "browser",
+  "uid": "system-health",
   "schemaVersion": 36,
   "version": 2,
   "refresh": "10s",
+  "timezone": "browser",
   "panels": [
     {
       "type": "timeseries",
       "title": "CPU Usage (%)",
-      "datasource": { "uid": "prometheus" },
+      "datasource": {
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "100 - (avg by(instance)(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
-          "legendFormat": "CPU Usage",
-          "refId": "A"
+          "refId": "A",
+          "expr": "100 - (avg by(instance)(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "{{instance}}"
         }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "percent" }
-      },
-      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 }
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "timeseries",
-      "title": "Memory Usage (MB)",
-      "datasource": { "uid": "prometheus" },
+      "title": "Memory Used (%)",
+      "datasource": {
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / 1024 / 1024",
-          "legendFormat": "Used Memory",
-          "refId": "B"
+          "refId": "B",
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory Used"
         }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "megabytes" }
-      },
-      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 }
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
     },
     {
       "type": "timeseries",
-      "title": "Disk Usage (GB)",
-      "datasource": { "uid": "prometheus" },
+      "title": "Disk Usage (%)",
+      "datasource": {
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "(node_filesystem_size_bytes - node_filesystem_avail_bytes) / 1024 / 1024 / 1024",
-          "legendFormat": "Used Disk",
-          "refId": "C"
+          "refId": "C",
+          "expr": "(1 - (node_filesystem_avail_bytes{fstype!=\"tmpfs\"} / node_filesystem_size_bytes{fstype!=\"tmpfs\"})) * 100",
+          "legendFormat": "{{mountpoint}}"
         }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "gigabytes" }
-      },
-      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 }
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      }
     }
   ]
 }

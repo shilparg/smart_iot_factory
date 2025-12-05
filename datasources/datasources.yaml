@@ -7,6 +7,6 @@ datasources:
     type: prometheus
     access: proxy
     uid: prometheus
-    url: http://iot-simulator-prometheus-1:9090
+    url: http://prometheus:9090
     isDefault: true
     editable: false

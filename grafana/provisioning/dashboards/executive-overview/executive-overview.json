@@ -1,116 +1,86 @@
 {
-  "id": null,
-  "uid": "executive-overview",
   "title": "Executive Overview",
-  "tags": ["overview", "executive", "monitoring"],
-  "timezone": "browser",
+  "uid": "executive-overview",
   "schemaVersion": 36,
-  "version": 1,
+  "version": 2,
   "refresh": "30s",
+  "timezone": "browser",
   "panels": [
     {
-      "type": "timeseries",
-      "title": "Anomaly Ratio (%)",
-      "datasource": { "uid": "prometheus" },
+      "type": "stat",
+      "title": "Global Anomaly Ratio (%)",
+      "datasource": {
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "(rate(anomaly_type_total[5m]) / rate(events_total[5m])) * 100",
-          "legendFormat": "Anomaly Ratio",
-          "refId": "A"
+          "refId": "A",
+          "expr": "(\n  sum(rate(anomaly_type_total[5m]))\n  /\n  sum(rate(events_total[5m]))\n) * 100"
         }
       ],
-      "fieldConfig": { "defaults": { "unit": "percent" } },
-      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Devices Generating Events",
+      "datasource": {
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "B",
+          "expr": "count(count by (device) (rate(events_total[5m])))"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
     },
     {
       "type": "timeseries",
-      "title": "Temperature Spike (p95 °C)",
-      "datasource": { "uid": "prometheus" },
+      "title": "Per-Device Anomaly Ratio (%)",
+      "datasource": {
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))",
-          "legendFormat": "95th Percentile Spike",
-          "refId": "B"
+          "refId": "C",
+          "expr": "(\n  sum by (device) (rate(anomaly_type_total[5m]))\n  /\n  sum by (device) (rate(events_total[5m]))\n) * 100",
+          "legendFormat": "{{device}}"
         }
       ],
-      "fieldConfig": { "defaults": { "unit": "celsius" } },
-      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
-    },
-    {
-      "type": "timeseries",
-      "title": "Request Latency (p95)",
-      "datasource": { "uid": "prometheus" },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
-          "legendFormat": "p95 Latency",
-          "refId": "C"
-        }
-      ],
-      "fieldConfig": { "defaults": { "unit": "s" } },
-      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
-    },
-    {
-      "type": "timeseries",
-      "title": "Error Rate (%)",
-      "datasource": { "uid": "prometheus" },
-      "targets": [
-        {
-          "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))",
-          "legendFormat": "Error Rate",
-          "refId": "D"
-        }
-      ],
-      "fieldConfig": { "defaults": { "unit": "percent" } },
-      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
-    },
-    {
-      "type": "timeseries",
-      "title": "CPU Usage (%)",
-      "datasource": { "uid": "prometheus" },
-      "targets": [
-        {
-          "expr": "100 - (avg by(instance)(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
-          "legendFormat": "CPU Usage",
-          "refId": "E"
-        }
-      ],
-      "fieldConfig": { "defaults": { "unit": "percent" } },
-      "gridPos": { "x": 0, "y": 16, "w": 8, "h": 8 }
-    },
-    {
-      "type": "timeseries",
-      "title": "Memory Usage (MB)",
-      "datasource": { "uid": "prometheus" },
-      "targets": [
-        {
-          "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / 1024 / 1024",
-          "legendFormat": "Used Memory",
-          "refId": "F"
-        }
-      ],
-      "fieldConfig": { "defaults": { "unit": "megabytes" } },
-      "gridPos": { "x": 8, "y": 16, "w": 8, "h": 8 }
-    },
-    {
-      "type": "timeseries",
-      "title": "Disk Usage (GB)",
-      "datasource": { "uid": "prometheus" },
-      "targets": [
-        {
-          "expr": "(node_filesystem_size_bytes - node_filesystem_avail_bytes) / 1024 / 1024 / 1024",
-          "legendFormat": "Used Disk",
-          "refId": "G"
-        }
-      ],
-      "fieldConfig": { "defaults": { "unit": "gigabytes" } },
-      "gridPos": { "x": 16, "y": 16, "w": 8, "h": 8 }
-    },
-    {
-      "type": "alertlist",
-      "title": "Active Alerts",
-      "options": { "show": "current", "stateFilter": ["alerting", "pending"] },
-      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 6 }
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 8
+      }
     }
   ]
 }

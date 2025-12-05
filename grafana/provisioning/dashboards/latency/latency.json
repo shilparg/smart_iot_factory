@@ -1,8 +1,6 @@
 {
-  "id": null,
-  "uid": "latency",
+  "uid": "latency-dashboard",
   "title": "Latency & Errors",
-  "tags": ["latency", "performance"],
   "timezone": "browser",
   "schemaVersion": 36,
   "version": 2,

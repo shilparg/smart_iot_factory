@@ -1,3 +1,6 @@
+# dashboards.yaml
+---
+
 apiVersion: 1
 
 providers:
@@ -8,7 +11,7 @@ providers:
     type: file
     editable: false
     disableDeletion: true
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 30
     options:
       path: /etc/grafana/provisioning/dashboards/anomalies
 
@@ -19,7 +22,7 @@ providers:
     type: file
     editable: false
     disableDeletion: true
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 30
     options:
       path: /etc/grafana/provisioning/dashboards/system-health
 
@@ -30,7 +33,7 @@ providers:
     type: file
     editable: false
     disableDeletion: true
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 30
     options:
       path: /etc/grafana/provisioning/dashboards/latency
 
@@ -41,7 +44,7 @@ providers:
     type: file
     editable: false
     disableDeletion: true
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 30
     options:
       path: /etc/grafana/provisioning/dashboards/iot-sim
 
@@ -52,6 +55,6 @@ providers:
     type: file
     editable: false
     disableDeletion: true
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 30
     options:
       path: /etc/grafana/provisioning/dashboards/executive-overview
