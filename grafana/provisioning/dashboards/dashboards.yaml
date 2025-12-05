@@ -8,7 +8,7 @@ providers:
     type: file
     editable: false
     disableDeletion: true
-    updateIntervalSeconds: 30
+    updateIntervalSeconds: 10
     options:
       path: /etc/grafana/provisioning/dashboards/anomalies
 
@@ -19,7 +19,7 @@ providers:
     type: file
     editable: false
     disableDeletion: true
-    updateIntervalSeconds: 30
+    updateIntervalSeconds: 10
     options:
       path: /etc/grafana/provisioning/dashboards/system-health
 
@@ -30,7 +30,7 @@ providers:
     type: file
     editable: false
     disableDeletion: true
-    updateIntervalSeconds: 30
+    updateIntervalSeconds: 10
     options:
       path: /etc/grafana/provisioning/dashboards/latency
 
@@ -41,7 +41,7 @@ providers:
     type: file
     editable: false
     disableDeletion: true
-    updateIntervalSeconds: 30
+    updateIntervalSeconds: 10
     options:
       path: /etc/grafana/provisioning/dashboards/iot-sim
 
@@ -52,6 +52,6 @@ providers:
     type: file
     editable: false
     disableDeletion: true
-    updateIntervalSeconds: 30
+    updateIntervalSeconds: 10
     options:
       path: /etc/grafana/provisioning/dashboards/executive-overview

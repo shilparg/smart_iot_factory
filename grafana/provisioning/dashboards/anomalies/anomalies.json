@@ -1,51 +1,166 @@
 {
   "title": "IoT Simulator Anomalies",
+  "uid": "iot-sim-anomalies",
   "schemaVersion": 36,
-  "version": 2,
+  "version": 4,
   "refresh": "10s",
+  "timezone": "browser",
   "panels": [
     {
       "type": "timeseries",
-      "title": "Anomaly Frequency by Type",
+      "title": "Anomaly Frequency by Type (events/s, global)",
       "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
       "targets": [
-        { "expr": "rate(anomaly_type_total[5m])", "legendFormat": "{{type}}" }
-      ]
+        {
+          "refId": "A",
+          "expr": "sum(rate(anomaly_type_total[5m])) by (type)",
+          "legendFormat": "{{type}}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
     },
     {
       "type": "timeseries",
-      "title": "Anomaly Ratio (%)",
+      "title": "Anomaly Frequency by Device & Type (events/s)",
       "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "(rate(anomaly_type_total[5m]) / rate(events_total[5m])) * 100",
-          "legendFormat": "Anomaly Ratio"
+          "refId": "B",
+          "expr": "sum(rate(anomaly_type_total[5m])) by (device, type)",
+          "legendFormat": "{{device}} - {{type}}"
         }
-      ]
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Global Anomaly Ratio (%)",
+      "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "C",
+          "expr": "(sum(rate(anomaly_type_total[5m])) / sum(rate(events_total[5m]))) * 100",
+          "legendFormat": "Global anomaly ratio"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Per-Device Anomaly Ratio (%)",
+      "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "D",
+          "expr": "(\n  sum by (device) (rate(anomaly_type_total[5m]))\n  /\n  sum by (device) (rate(events_total[5m]))\n) * 100",
+          "legendFormat": "{{device}} anomaly ratio"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
     },
     {
       "type": "bargauge",
-      "title": "Anomaly Severity Breakdown",
+      "title": "Anomaly Severity (last 5m, global by level)",
       "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "basic",
+        "orientation": "horizontal"
+      },
       "targets": [
-        { "expr": "anomaly_severity_total", "legendFormat": "{{level}}" }
-      ]
+        {
+          "refId": "E",
+          "expr": "sum(increase(anomaly_severity_total[5m])) by (level)",
+          "legendFormat": "{{level}}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 }
+    },
+    {
+      "type": "barchart",
+      "title": "Anomaly Severity by Device (last 5m)",
+      "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "legend": {
+          "show": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "F",
+          "expr": "sum(increase(anomaly_severity_total[5m])) by (device, level)",
+          "legendFormat": "{{device}} - {{level}}"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 }
     },
     {
       "type": "timeseries",
-      "title": "Temperature Spike Distribution",
+      "title": "Temperature Spike p95 (°C, per device, last 5m)",
       "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))",
-          "legendFormat": "95th percentile spike"
+          "refId": "G",
+          "expr": "histogram_quantile(\n  0.95,\n  sum by (le, device) (rate(temperature_spike_c_bucket[5m]))\n)",
+          "legendFormat": "p95 spike {{device}}"
         }
-      ]
+      ],
+      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 8 }
     },
     {
       "type": "alertlist",
       "title": "Active Alerts",
-      "options": { "show": "current", "stateFilter": ["alerting", "pending"] }
+      "options": {
+        "show": "current",
+        "stateFilter": ["alerting", "pending"]
+      },
+      "gridPos": { "x": 0, "y": 32, "w": 24, "h": 6 }
     }
   ]
 }

@@ -1,19 +1,26 @@
 {
   "id": null,
+  "uid": "iot-sim-system-health",
   "title": "IoT Simulator + System Health",
   "tags": ["iot", "simulator", "system", "prometheus"],
   "timezone": "browser",
   "schemaVersion": 36,
-  "version": 2,
+  "version": 4,
   "refresh": "5s",
   "panels": [
     {
       "type": "timeseries",
       "title": "Machine Temperature (°C)",
       "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "machine_temperature",
+          "expr": "machine_temperature_c",
           "legendFormat": "{{device}}",
           "refId": "A"
         }
@@ -24,9 +31,15 @@
       "type": "timeseries",
       "title": "Machine Vibration (m/s²)",
       "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "machine_vibration",
+          "expr": "machine_vibration_ms2",
           "legendFormat": "{{device}}",
           "refId": "B"
         }
@@ -37,18 +50,53 @@
       "type": "timeseries",
       "title": "Machine RPM",
       "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
       "targets": [
-        { "expr": "machine_rpm", "legendFormat": "{{device}}", "refId": "C" }
+        {
+          "expr": "machine_rpm",
+          "legendFormat": "{{device}}",
+          "refId": "C"
+        }
       ],
-      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 }
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Machine Power (kW)",
+      "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatt"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "machine_power_kw",
+          "legendFormat": "{{device}}",
+          "refId": "H"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
     },
     {
       "type": "barchart",
       "title": "Anomaly Type Frequency (last 5m)",
       "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "count_over_time(anomaly_type_total[5m])",
+          "expr": "sum(increase(anomaly_type_total[5m])) by (type)",
           "legendFormat": "{{type}}",
           "refId": "D"
         }
@@ -59,9 +107,17 @@
       "type": "timeseries",
       "title": "CPU Usage (%)",
       "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "100 - (avg by(instance)(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "expr": "100 - (avg by(instance)(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
           "legendFormat": "CPU Usage",
           "refId": "E"
         }
@@ -72,6 +128,12 @@
       "type": "timeseries",
       "title": "Memory Available (MB)",
       "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "mebibytes"
+        },
+        "overrides": []
+      },
       "targets": [
         {
           "expr": "node_memory_MemAvailable_bytes / 1024 / 1024",
@@ -85,6 +147,12 @@
       "type": "timeseries",
       "title": "Disk Space Available (GB)",
       "datasource": { "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "gbytes"
+        },
+        "overrides": []
+      },
       "targets": [
         {
           "expr": "node_filesystem_avail_bytes{fstype!=\"tmpfs\"} / 1024 / 1024 / 1024",
@@ -97,7 +165,10 @@
     {
       "type": "alertlist",
       "title": "Active Alerts",
-      "options": { "show": "current", "stateFilter": ["alerting", "pending"] },
+      "options": {
+        "show": "current",
+        "stateFilter": ["alerting", "pending"]
+      },
       "gridPos": { "x": 0, "y": 38, "w": 24, "h": 6 }
     }
   ]

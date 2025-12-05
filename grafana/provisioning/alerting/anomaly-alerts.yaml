@@ -7,67 +7,99 @@ groups:
     folder: "Anomaly Alerts"
     interval: 30s
     rules:
+      # -----------------------------
+      # High Anomaly Ratio (per device)
+      # -----------------------------
       - uid: anomaly-ratio-high
-        title: "High Anomaly Ratio"
+        title: "High Anomaly Ratio (per device)"
         condition: A
         data:
           - refId: A
-            datasourceUid: prometheus          # must match your datasource uid
-            relativeTimeRange:                 # look back 5 minutes
-              from: 300                        # seconds (5m)
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300 # 5 minutes
               to: 0
             model:
-              expr: >
-                (rate(anomaly_type_total[5m]) /
-                rate(events_total[5m])) * 100
+              hide: false
+              intervalMs: 15000
+              maxDataPoints: 43200
+              refId: A
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: |
+                (
+                  sum by (device) (rate(anomaly_type_total[5m]))
+                  /
+                  sum by (device) (rate(events_total[5m]))
+                ) * 100
               format: time_series
               instant: false
-              intervalMs: 15000
+              legendFormat: "{{device}} anomaly ratio"
+              range: true
         for: 2m
         annotations:
-          summary: "Anomaly ratio exceeded 20%"
+          summary: "High anomaly ratio for one or more devices (> 20%)"
+          description: "Over the last 5 minutes, a device has more than 20% of its events classified as anomalies."
         labels:
           severity: warning
         conditions:
           - evaluator:
               type: gt
-              params: [20]                     # > 20%
+              params: [20] # > 20%
             operator:
               type: and
             query:
-              refId: A
+              params: [A]
             reducer:
               type: last
             type: query
-
+      # -----------------------------
+      # Critical Temperature Spike (p95)
+      # -----------------------------
       - uid: spike-severity-critical
-        title: "Critical Temperature Spike"
+        title: "Critical Temperature Spike (per device)"
         condition: A
         data:
           - refId: A
-            datasourceUid: prometheus          # same uid
-            relativeTimeRange:                 # look back 5 minutes
+            datasourceUid: prometheus
+            relativeTimeRange:
               from: 300
               to: 0
             model:
-              expr: >
-                histogram_quantile(0.95, rate(temperature_spike_c_bucket[5m]))
+              hide: false
+              intervalMs: 15000
+              maxDataPoints: 43200
+              refId: A
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: |
+                histogram_quantile(
+                  0.95,
+                  sum by (le, device) (rate(temperature_spike_c_bucket[5m]))
+                )
               format: time_series
               instant: false
-              intervalMs: 15000
+              legendFormat: "p95 spike {{device}}"
+              range: true
+
         for: 1m
         annotations:
-          summary: "95th percentile spike > 25°C"
+          summary: "95th percentile temperature spike > 25°C for a device"
+          description: "For at least 1 minute, a device has a 95th percentile spike above 25°C."
         labels:
           severity: critical
         conditions:
           - evaluator:
               type: gt
-              params: [25]                     # > 25°C
+              params: [25]
             operator:
               type: and
             query:
-              refId: A
+              params: [A]
             reducer:
               type: last
             type: query
